@@ -1,4 +1,4 @@
-var define = function define(name, deps, factory) {
+var define = define || function define(name, deps, factory) {
 	var pending = define._p = define._p || [];
 	var modules = define._m = define._m || {};
 
@@ -32,8 +32,9 @@ var define = function define(name, deps, factory) {
 };
 
 var caution = {
-	error: function (message) {
-		window.alert(message);
+	version: VERSION,
+	missing: function (name, hash) {
+		alert('Missing safe ' + name + '\n' + hash);
 	},
 	add: function (name, hash, urls) {
 		var cautionRef = caution;
@@ -52,11 +53,11 @@ var caution = {
 				var expectedHash = module.h[i];
 				if (!expectedHash || hash.substring(0, expectedHash.length) == expectedHash) {
 					define._n = name;
-					EVAL(c); // Hack - Uglify refuses to mangle variable names when eval() is used, so this is replaced after minifying
-					return define._n = true;
+					EVAL(c); // Hack - UglifyJS refuses to mangle variable names when eval() is used, so this is replaced after minifying
+					return define._n = null;
 				}
 			}
 		}
-		cautionRef.error('Missing safe ' + name + '\n' + hash);
+		this.missing(name, hash);
 	}
 };
