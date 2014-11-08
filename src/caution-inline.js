@@ -59,9 +59,6 @@ var caution = {
 		};
 		request.send();
 	},
-	template: function (t) {
-		this._t = this._t.concat(t);
-	},
 	hash: function (name, hashes) {
 		var thisCaution = this;
 		var templates = thisCaution._t;
@@ -70,7 +67,14 @@ var caution = {
 		function next(error, js) {
 			if (error) {
 				if (i < templates.length) {
-					thisCaution.get(templates[i++].replace(/{.*?}/, name), hashes, next);
+					var template = templates[i++];
+					if (typeof template == 'string') {
+						thisCaution.get(template.replace(/{.*?}/, name), hashes, next);
+					} else if (template[name]) {
+						thisCaution.get(template[name], hashes, next);
+					} else {
+						next(error);
+					}
 				} else {
 					thisCaution.missing(name, hashes);
 				}

@@ -60,6 +60,8 @@ This is a very simplistic text-only method to fetch resources.  If one of the ha
 
 There is a `caution` module, which enhances the inline API with more methods.
 
+This module is not essential, and it's possible to use caution.js without it - however it is required to generate new inline code and `data:` URLs.
+
 ### `caution.config()`
 
 This returns an object representing the currently-loaded set of templates, modules and hashes, e.g.:

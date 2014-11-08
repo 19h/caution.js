@@ -14,19 +14,18 @@ define([], function () {
 	
 	caution.config = function () {
 		var result = {
-			template: caution._t.slice(0),
+			template: this._t.slice(0),
 			hash: {}
 		};
-		for (var key in caution._h) {
-			result.hash[key] = caution._h[key].slice(0);
+		for (var key in this._h) {
+			result.hash[key] = this._h[key].slice(0);
 		}
 		return result;
 	};
 	
 	caution.dataUrl = function (config, customCode) {
 		config = config || this.config();
-		var js = inlineJs;
-		js += 'caution.template(' + JSON.stringify(config.template) + ');';
+		var js = inlineJs.replace('_t:[]', '_t:' + JSON.stringify(config.template));
 		for (var key in config) {
 			if (key !== 'template') {
 				for (var name in config[key]) {
