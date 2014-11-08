@@ -31,5 +31,3 @@ var exampleCode = minified + 'caution.add("main", "2c38d1ca6c43184c49e3c71d77af3
 var html = '<script>' + exampleCode + '</script>';
 var dataUrl = dataUrl(html);
 console.log('Data URL: ' + dataUrl.length + ' chars');
-
-fs.writeFileSync('index.html', html);

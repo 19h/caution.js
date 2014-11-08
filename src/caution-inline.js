@@ -1,4 +1,4 @@
-var define = define || function define(name, deps, factory) {
+var define = function define(name, deps, factory) {
 	var pending = define._p = define._p || [];
 	var modules = define._m = define._m || {};
 
@@ -32,32 +32,47 @@ var define = define || function define(name, deps, factory) {
 };
 
 var caution = {
-	version: VERSION,
-	missing: function (name, hash) {
-		alert('Missing safe ' + name + '\n' + hash);
+	_t: [], // Set of URI Templates
+	_h: {}, // Set of allowed module hashes
+	version: VERSION, // Replaced as part of build
+	missing: function (name, hashes) {
+		alert('Missing safe module: ' + name + '\n' + hashes.join('\n'));
 	},
-	add: function (name, hash, urls) {
-		var cautionRef = caution;
-		var modules = cautionRef._m = cautionRef._m || {};
-		var module = modules[name] = modules[name] || {h: [], u: []};
-		module.h.push(hash);
-		module.u = module.u.concat(urls);
-
-		while (urls.length) {
-			var request = new XMLHttpRequest;
-			request.open("GET", urls.shift(), false);
-			request.send();
-			var c = request.responseText;
-			var hash = sha256(c);
-			for (var i = 0; i < module.h.length; i++) {
-				var expectedHash = module.h[i];
-				if (!expectedHash || hash.substring(0, expectedHash.length) == expectedHash) {
-					define._n = name;
-					EVAL(c); // Hack - UglifyJS refuses to mangle variable names when eval() is used, so this is replaced after minifying
-					return define._n = null;
-				}
+	get: function (url, hashes, callback) {
+		var request = new XMLHttpRequest;
+		request.open("GET", url, false);
+		request.send();
+		var content = request.responseText;
+		var hash = sha256(content);
+		for (var i = 0; i < hashes.length; i++) {
+			var expectedHash = hashes[i];
+			if (hash.substring(0, expectedHash.length) == expectedHash) {
+				return callback(null, content);
 			}
 		}
-		this.missing(name, hash);
+		callback(1);
+	},
+	template: function (t) {
+		this._t = this._t.concat(t);
+	},
+	add: function (name, hashes) {
+		var thisCaution = this;
+		var templates = thisCaution._t;
+		thisCaution._h[name] = hashes;
+		var i = 0;
+		function next(error, js) {
+			if (error) {
+				if (i < templates.length) {
+					thisCaution.get(templates[i++].replace(/{.*}/, name), hashes, next);
+				} else {
+					thisCaution.missing(name, hashes);
+				}
+			} else {
+				define._n = name;
+				EVAL(js); // Hack - UglifyJS refuses to mangle variable names when eval() is used, so this is replaced after minifying
+				define._n = null;
+			}
+		}
+		next(1);
 	}
 };

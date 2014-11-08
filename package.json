@@ -1,6 +1,6 @@
 {
   "name": "caution",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Tamper-proof web apps",
   "main": "caution.js",
   "scripts": {
