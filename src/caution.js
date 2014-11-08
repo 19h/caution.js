@@ -23,13 +23,14 @@ define([], function () {
 		return result;
 	};
 	
-	caution.dataUrl = function (state, customCode) {
+	caution.dataUrl = function (config, customCode) {
+		config = config || this.config();
 		var js = inlineJs;
-		js += 'caution.template(' + JSON.stringify(state.template) + ');';
-		for (var key in state) {
+		js += 'caution.template(' + JSON.stringify(config.template) + ');';
+		for (var key in config) {
 			if (key !== 'template') {
-				for (var name in state[key]) {
-					js += 'caution.' + key + '(' + JSON.stringify(name) + ',' + JSON.stringify(state[key][name]) + ');';
+				for (var name in config[key]) {
+					js += 'caution.' + key + '(' + JSON.stringify(name) + ',' + JSON.stringify(config[key][name]) + ');';
 				}
 			}
 		}
