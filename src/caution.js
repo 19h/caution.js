@@ -1,7 +1,7 @@
 define([], function () {
 	var inlineJs = INLINE;
 
-	caution.current = function () {
+	caution.config = function () {
 		var result = {
 			template: caution._t.slice(0),
 			hash: {}

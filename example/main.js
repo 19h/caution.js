@@ -4,4 +4,4 @@ define(['A'], function (a) {
 
 define('A', [], function () {
 	return JSON.stringify('A');
-})
+});

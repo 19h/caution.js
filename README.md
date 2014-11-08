@@ -12,7 +12,7 @@ Modules are then loaded by supplying a list of acceptable SHA-256 hashes (hex-en
 
 ```javascript
 var hash = '2c38d1ca6c43184c49e3c71d77af359ddaf88ce8f44f6c1455ff69393b129cb7';
-caution.add('main', hash);
+caution.hash('main', hash);
 ```
 
 Modules themselves can just use the familiar `define()` syntax:
@@ -29,7 +29,9 @@ The idea is to be small enough to reasonably fit in a `data:` URL, allowing secu
 
 Although this could be achieved with a single SHA256-verified JS resource (which itself could contain a module loader), having the module-loader in the `data:` URL gives more flexibility when resources have moved - for example, the user could be prompted to provide alternative locations to search for modules.
 
-## API
+## Inline API
+
+These are the API calls defined by the "inline" module, intended to be included in `data:`URLs.
 
 ### `define()`
 
@@ -39,9 +41,9 @@ This is the `define()` function as defined in the [Asynchronous Module Definitio
 
 This adds a template to the list of possible locations for modules.  This is not a proper URI Template, but rather a string of the form `/modules/{}.js`, where `{}` is replaced by the module name (unescaped).
 
-These templates must be added *before* calls to `caution.add()`.
+These templates must be added *before* calls to `caution.hash()`.
 
-### `caution.add(moduleName, hashes)`
+### `caution.hash(moduleName, hashes)`
 
 This registers a set of valid SHA-256 hash values for a given module.
 
@@ -50,3 +52,24 @@ It also prompts fetching of the modules using whatever templates are available.
 ### `caution.get(url, hashes, callback)`
 
 This is a very simplistic text-only (in fact ASCII-only) method to fetch resources.  If one of the hashes matches, then the content is returned (without error) - otherwise, a truthy value is returned as the error.
+
+## Full/module API
+
+There is a `caution` module, which enhances the inline API with more methods.
+
+### `caution.config()`
+
+This returns an object representing the currently-loaded set of templates, modules and hashes, e.g.:
+
+```json
+{
+	"template": [...],
+	"hash": {
+		"moduleName": [...]
+	}
+}
+```
+
+### `caution.dataUrl(config)`
+
+This returns a `data:` URL for an HTML page containing JavaScript code for the inline API and the config.

@@ -11,12 +11,11 @@ var INLINE = request.responseText;
 <script>
 caution.template('{}.js');
 caution.template('../src/{}.js');
-caution.template('https://gist.githubusercontent.com/anonymous/51f680054d1ac47d1d0d/raw/57a326ce44c16db57d83a3545e39fecf29bcbe9a/{}.js');
 caution.hash('main', ['2c38d1ca6c43184c49e3c71d77af359ddaf88ce8f44f6c1455ff69393b129cb7']);
 caution.hash('caution', ['']);
 
 define(['caution'], function (caution) {
-	var state = caution.current();
+	var state = caution.config();
 	var prefix = location.href.replace(/[^\/]+$/, '');
 	state.template[0] = prefix + state.template[0];
 	state.template[1] = prefix + state.template[1];

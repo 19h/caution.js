@@ -11,11 +11,6 @@ function minify(input, name) {
 	return code;
 }
 
-function dataUrl(code, type) {
-	var codeBuffer = new Buffer(code, 'utf-8');
-	return 'data:' + (type || 'text/html') + ';base64,' + codeBuffer.toString('base64');
-}
-
 /*****/
 
 var packageInfo = require('./package.json');
@@ -29,9 +24,3 @@ fs.writeFileSync('inline.js', minified);
 var main = fs.readFileSync(__dirname + '/src/caution.js', {encoding: 'utf-8'});
 main = main.replace('INLINE', JSON.stringify(minified));
 fs.writeFileSync('caution.js', main);
-
-var exampleCode = minified + 'caution.add("main", "2c38d1ca6c43184c49e3c71d77af359ddaf88ce8f44f6c1455ff69393b129cb7", ["main.js"]);';
-
-var html = '<script>' + exampleCode + '</script>';
-var dataUrl = dataUrl(html);
-console.log('Data URL: ' + dataUrl.length + ' chars');
