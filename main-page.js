@@ -14,13 +14,18 @@ define(['caution'], function (caution) {
 });
 
 define(['caution', 'marked', 'Prism'], function (caution, marked, Prism) {
-	var dataUrl = caution.dataUrl(caution.config());
+	var config = caution.config();
+	for (var key in config.hash) {
+		config.hash[key] = caution.hashes(key);
+	}
+	console.log(config);
+	var dataUrl = caution.dataUrl(config, {baseUrl: baseUrl});
 	console.log('url', dataUrl);
 	console.log('length', dataUrl.length);
 	
 	Prism.languages.json = Prism.languages.json || Prism.languages.javascript;
 	
-	caution.get('README.md', [''], function (error, text) {
+	caution.get(baseUrl + 'README.md', [''], function (error, text) {
 		if (error) {
 			text = error.message + '\n\n```' + (error.stack || '(no stack)') + '```';
 		}

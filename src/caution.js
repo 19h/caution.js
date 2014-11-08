@@ -33,7 +33,15 @@ define([], function () {
 				}
 			}
 		}
-		js += customCode || '';
+		customCode = customCode || '';
+		if (typeof customCode === 'object') {
+			var vars = [];
+			for (var key in customCode) {
+				vars.push(key + '=' + JSON.stringify(customCode[key]));
+			}
+			customCode = 'var ' + vars.join(',') + ';';
+		}
+		js += customCode;
 		var html = '<!DOCTYPE html><html><body><script>' + js + '</script></body></html>';
 		
 		if (typeof btoa === 'function') {
@@ -44,11 +52,23 @@ define([], function () {
 	};
 	
 	caution.hashShim = function (name, url, hashes, returnValue) {
-		caution.get(url, hashes, function (error, js) {
+		caution.get(url, hashes, function (error, js, hash) {
 			if (error) return caution.missing(name, hashes);
 
+			caution._m[name] = [url, hash];
+			
 			define(name, [], new Function(js + '\n;return ' + (returnValue || name)+ ';'));
 		});
+	};
+	
+	caution.hashes = function (name) {
+		if (name) return (caution._m[name] || [])[1];
+		
+		var result = {};
+		for (var key in caution._m) {
+			result[key] = caution._m[key][1];
+		}
+		return result;
 	};
 	
 	return caution;

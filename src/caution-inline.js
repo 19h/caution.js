@@ -52,7 +52,7 @@ var caution = {
 				for (var i = 0; i < hashes.length; i++) {
 					var expectedHash = hashes[i];
 					if (!((request.status/100)^2) && hash.substring(0, expectedHash.length) == expectedHash) {
-						return callback(null, content);
+						return callback(null, content, hash);
 					}
 				}
 				callback(1);
@@ -70,7 +70,7 @@ var caution = {
 		thisCaution._h[name] = hashes;
 		var i = 0;
 		var url;
-		function next(error, js) {
+		function next(error, js, hash) {
 			if (error) {
 				if (i < templates.length) {
 					url = (typeof templates[i] == 'string') ? templates[i++].replace(/{.*?}/, name) : templates[i++][name];
@@ -84,7 +84,7 @@ var caution = {
 				}
 			} else {
 				define._n = name;
-				thisCaution._m[name] = url;
+				thisCaution._m[name] = [url, hash];
 				EVAL(js); // Hack - UglifyJS refuses to mangle variable names when eval() is used, so this is replaced after minifying
 				define._n = '';
 			}

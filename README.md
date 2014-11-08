@@ -40,12 +40,6 @@ This is the `define()` function as defined in the [Asynchronous Module Definitio
 
 Due to the security model of this module loader, it will not fetch any modules for which a hash has not been supplied.
 
-### `caution.template(uriTemplate)`
-
-This adds a template (or list of templates) to the set of possible locations for modules.  This is not a proper URI Template, but rather a string of the form `/modules/{}.js`, where `{}` is replaced by the module name (unescaped).
-
-These templates must be added *before* calls to `caution.hash()`.
-
 ### `caution.hash(moduleName, hashes)`
 
 This registers a list of valid SHA-256 hash values for a given module.
@@ -60,7 +54,7 @@ This is a very simplistic text-only method to fetch resources.  If one of the ha
 
 There is a `caution` module, which enhances the inline API with more methods.
 
-This module is not essential, and it's possible to use caution.js without it - however it is required to generate new inline code and `data:` URLs.
+This module is not essential, and it's possible to use caution.js without it - however it is required to generate new `data:` URLs containing the inline API.
 
 ### `caution.config()`
 
