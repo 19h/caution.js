@@ -5,7 +5,7 @@ var define = function define(name, deps, factory) {
 	if (!factory) {
 		factory = deps || name;
 		deps = (deps && name) || [];
-		name = define._n;
+		name = define._n || Math.random();
 	}
 	pending.push([name, deps, factory]);
 	
@@ -44,7 +44,10 @@ var caution = {
 		request.onreadystatechange = function () {
 			if (request.readyState == 4) {
 				var content = request.responseText.replace(/\r/g, ''); // Normalise for consistent behaviour across webserver OS
-				var hash = sha256(content);
+				// UTF-8 encode before hash
+				var hash = sha256(encodeURI(content).replace(/%../g, function (part) {
+					return String.fromCharCode(parseInt(part[1] + part[2], 16));
+				}));
 				for (var i = 0; i < hashes.length; i++) {
 					var expectedHash = hashes[i];
 					if (!((request.status/100)^2) && hash.substring(0, expectedHash.length) == expectedHash) {

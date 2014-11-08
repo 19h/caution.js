@@ -5,7 +5,7 @@ define([], function () {
 		var func = new Function(inlineJs + 'return caution;');
 		caution = func();
 	}
-
+	
 	caution.config = function () {
 		var result = {
 			template: caution._t.slice(0),
