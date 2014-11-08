@@ -23,4 +23,4 @@ fs.writeFileSync('inline.js', minified);
 
 var main = fs.readFileSync(__dirname + '/src/caution.js', {encoding: 'utf-8'});
 main = main.replace('INLINE', JSON.stringify(minified));
-fs.writeFileSync('caution.js', main);
+fs.writeFileSync('modules/caution.js', main);

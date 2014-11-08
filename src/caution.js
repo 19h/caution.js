@@ -1,5 +1,10 @@
 define([], function () {
 	var inlineJs = INLINE;
+	
+	if (typeof caution !== 'object') {
+		var func = new Function(inlineJs + 'return caution;');
+		caution = func();
+	}
 
 	caution.config = function () {
 		var result = {
@@ -12,7 +17,7 @@ define([], function () {
 		return result;
 	};
 	
-	caution.dataUrl = function (state) {
+	caution.dataUrl = function (state, customCode) {
 		var js = inlineJs;
 		js += 'caution.template(' + JSON.stringify(state.template) + ');';
 		for (var key in state) {
@@ -22,6 +27,7 @@ define([], function () {
 				}
 			}
 		}
+		js += customCode || '';
 		var html = '<!DOCTYPE html><html><body><script>' + js + '</script></body></html>';
 		
 		if (typeof btoa === 'function') {
