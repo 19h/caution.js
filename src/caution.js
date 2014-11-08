@@ -6,6 +6,12 @@ define([], function () {
 		caution = func();
 	}
 	
+	caution.utf8 = function (content) {
+		return encodeURI(content).replace(/%../g, function (part) {
+			return String.fromCharCode(parseInt(part[1] + part[2], 16));
+		});
+	};
+	
 	caution.config = function () {
 		var result = {
 			template: caution._t.slice(0),
@@ -35,6 +41,14 @@ define([], function () {
 		} else {
 			return 'data:text/html,' + encodeURI(html);
 		}
+	};
+	
+	caution.hashShim = function (name, url, hashes, returnValue) {
+		caution.get(url, hashes, function (error, js) {
+			if (error) return caution.missing(name, hashes);
+
+			define(name, [], new Function(js + '\n;return ' + (returnValue || name)+ ';'));
+		});
 	};
 	
 	return caution;

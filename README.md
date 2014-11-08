@@ -54,7 +54,7 @@ It also prompts fetching of the modules using whatever templates are available.
 
 ### `caution.get(url, hashes, callback)`
 
-This is a very simplistic text-only (in fact ASCII-only) method to fetch resources.  If one of the hashes matches, then the content is returned (without error) - otherwise, a truthy value is returned as the error.
+This is a very simplistic text-only method to fetch resources.  If one of the hashes matches, then the content is returned (without error) - otherwise, a truthy value is returned as the error.
 
 ## Full/module API
 
@@ -78,3 +78,9 @@ This returns an object representing the currently-loaded set of templates, modul
 This returns a `data:` URL for an HTML page containing JavaScript code for the inline API and the config.
 
 This is intended for when an update is available, or alternative locations have been supplied, and the user wishes to persist the change by generating (and re-bookmarking) another URL.
+
+### `caution.hashShim(moduleName, url, hashes, ?returnValue)`
+
+For modules that don't support AMD syntax, this wraps them in a `define()` call.
+
+The optional `returnValue` argument specifies JavaScript code to return at the end.  This defaults to `moduleName`.
