@@ -2,7 +2,7 @@
 var EVAL = eval, VERSION = 'unknown'; // Hacks (see caution-inline.js)
 
 var request = new XMLHttpRequest;
-request.open("GET", '../src/caution-inline.js', false);
+request.open("GET", '../inline.js', false);
 request.send();
 var INLINE = request.responseText;
 </script>
@@ -11,11 +11,18 @@ var INLINE = request.responseText;
 <script>
 caution.template('{}.js');
 caution.template('../src/{}.js');
+caution.template('https://gist.githubusercontent.com/anonymous/51f680054d1ac47d1d0d/raw/57a326ce44c16db57d83a3545e39fecf29bcbe9a/{}.js');
 caution.hash('main', ['2c38d1ca6c43184c49e3c71d77af359ddaf88ce8f44f6c1455ff69393b129cb7']);
 caution.hash('caution', ['']);
 
 define(['caution'], function (caution) {
-
-	console.log('caution', JSON.stringify(caution.current(), null, '\t'));
+	var state = caution.current();
+	var prefix = location.href.replace(/[^\/]+$/, '');
+	state.template[0] = prefix + state.template[0];
+	state.template[1] = prefix + state.template[1];
+	
+	var dataUrl = caution.dataUrl(state);
+	console.log('url', dataUrl);
+	console.log('length', dataUrl.length);
 });
 </script>

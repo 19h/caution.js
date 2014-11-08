@@ -40,22 +40,26 @@ var caution = {
 	},
 	get: function (url, hashes, callback) {
 		var request = new XMLHttpRequest;
-		request.open("GET", url, false);
-		request.send();
-		var content = request.responseText;
-		var hash = sha256(content);
-		for (var i = 0; i < hashes.length; i++) {
-			var expectedHash = hashes[i];
-			if (hash.substring(0, expectedHash.length) == expectedHash) {
-				return callback(null, content);
+		request.open("GET", url);
+		request.onreadystatechange = function () {
+			if (request.readyState == 4) {
+				var content = request.responseText.replace(/\r/g, ''); // Normalise for consistent behaviour across webserver OS
+				var hash = sha256(content);
+				for (var i = 0; i < hashes.length; i++) {
+					var expectedHash = hashes[i];
+					if (!((request.status/100)^2) && hash.substring(0, expectedHash.length) == expectedHash) {
+						return callback(null, content);
+					}
+				}
+				callback(1);
 			}
-		}
-		callback(1);
+		};
+		request.send();
 	},
 	template: function (t) {
 		this._t = this._t.concat(t);
 	},
-	add: function (name, hashes) {
+	hash: function (name, hashes) {
 		var thisCaution = this;
 		var templates = thisCaution._t;
 		thisCaution._h[name] = hashes;
@@ -63,14 +67,14 @@ var caution = {
 		function next(error, js) {
 			if (error) {
 				if (i < templates.length) {
-					thisCaution.get(templates[i++].replace(/{.*}/, name), hashes, next);
+					thisCaution.get(templates[i++].replace(/{.*?}/, name), hashes, next);
 				} else {
 					thisCaution.missing(name, hashes);
 				}
 			} else {
 				define._n = name;
 				EVAL(js); // Hack - UglifyJS refuses to mangle variable names when eval() is used, so this is replaced after minifying
-				define._n = null;
+				define._n = '';
 			}
 		}
 		next(1);

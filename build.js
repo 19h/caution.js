@@ -26,6 +26,10 @@ var minified = minify([__dirname + '/src/caution-inline.js', __dirname + '/node_
 minified = minified.replace('VERSION', JSON.stringify(version));
 fs.writeFileSync('inline.js', minified);
 
+var main = fs.readFileSync(__dirname + '/src/caution.js', {encoding: 'utf-8'});
+main = main.replace('INLINE', JSON.stringify(minified));
+fs.writeFileSync('caution.js', main);
+
 var exampleCode = minified + 'caution.add("main", "2c38d1ca6c43184c49e3c71d77af359ddaf88ce8f44f6c1455ff69393b129cb7", ["main.js"]);';
 
 var html = '<script>' + exampleCode + '</script>';
