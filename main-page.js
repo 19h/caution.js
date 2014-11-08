@@ -1,3 +1,6 @@
+document.title = "caution.js";
+document.body.innerHTML = 'Loading...';
+
 define(['caution'], function (caution) {
 	caution.hashShim('marked', 'http://cdnjs.cloudflare.com/ajax/libs/marked/0.3.2/marked.min.js', ['8208dd7d61227d3caeece575cfe01fcd60fce360fa7103abb0dc7f6329217eba']);
 	caution.hashShim('Prism', 'http://cdnjs.cloudflare.com/ajax/libs/prism/0.0.1/prism.min.js', ['e904847187d6817a5f483b70c1d702703dd20d23bac7045968f5c889690d1a08']);
@@ -17,8 +20,10 @@ define(['caution', 'marked', 'Prism'], function (caution, marked, Prism) {
 	
 	Prism.languages.json = Prism.languages.json || Prism.languages.javascript;
 	
-	caution.get(baseUrl + 'README.md', [''], function (error, text) {
-		if (error) throw error;
+	caution.get('README.md', [''], function (error, text) {
+		if (error) {
+			text = error.message + '\n\n```' + (error.stack || '(no stack)') + '```';
+		}
 		var html = marked(text, {gfm: true, sanitize: true});
 		document.body.innerHTML = html;
 		Prism.highlightAll();

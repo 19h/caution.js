@@ -34,6 +34,7 @@ var define = function define(name, deps, factory) {
 var caution = {
 	_t: [], // Set of URI Templates
 	_h: {}, // Set of allowed module hashes
+	_m: {}, // Where modules end up being successfully loaded from
 	version: VERSION, // Replaced as part of build
 	missing: function (name, hashes) {
 		alert('Missing safe module: ' + name + '\n' + hashes.join('\n'));
@@ -57,21 +58,24 @@ var caution = {
 				callback(1);
 			}
 		};
-		request.send();
+		try {
+			request.send();
+		} catch (e) {
+			callback(e);
+		}
 	},
 	hash: function (name, hashes) {
 		var thisCaution = this;
 		var templates = thisCaution._t;
 		thisCaution._h[name] = hashes;
 		var i = 0;
+		var url;
 		function next(error, js) {
 			if (error) {
 				if (i < templates.length) {
-					var template = templates[i++];
-					if (typeof template == 'string') {
-						thisCaution.get(template.replace(/{.*?}/, name), hashes, next);
-					} else if (template[name]) {
-						thisCaution.get(template[name], hashes, next);
+					url = (typeof templates[i] == 'string') ? templates[i++].replace(/{.*?}/, name) : templates[i++][name];
+					if (url) {
+						thisCaution.get(url, hashes, next);
 					} else {
 						next(error);
 					}
@@ -80,6 +84,7 @@ var caution = {
 				}
 			} else {
 				define._n = name;
+				thisCaution._m[name] = url;
 				EVAL(js); // Hack - UglifyJS refuses to mangle variable names when eval() is used, so this is replaced after minifying
 				define._n = '';
 			}
