@@ -19,10 +19,11 @@ define(['caution', 'main-page'], function (caution) {
 		}
 	};
 	
+	var url = caution.dataUrl(config, {baseUrl: baseUrl});
+	if (!/noredirect/.test(location.href)) return location.replace(url);
+
 	var js = caution.inlineJs(config, {baseUrl: baseUrl});
 	console.log(js);
-
-	var url = caution.dataUrl(config, {baseUrl: baseUrl});
 	console.log(url);
 	console.log('length', url.length);
 });
