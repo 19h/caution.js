@@ -1,14 +1,14 @@
 (function (global) {
 	var inlineJs = INLINE;
 	
-	var func = new Function(inlineJs + 'return {caution: caution, define: define};');
-	var result = func.call(global);
-
 	// Set up the global "define" if it doesn't already exist
-	if (typeof define !== 'function' || !define.amd.caution) {		
+	if (typeof define !== 'function' || !define.amd || !define.amd.caution) {		
+		var func = new Function(inlineJs + 'return {caution: caution, define: define};');
+		var result = func.call(global);
 		define = global.define = result.define;
+		// We can't replace the global "caution" module unless we're also replacing define(), otherwise it will refer to the wrong version of define()
+		caution = global.caution = result.caution;
 	}
-	caution = global.caution = result.caution;
 	
 	caution.undefine = function () {
 		delete define._m['caution'];
@@ -127,7 +127,7 @@
 			caution._m[name] = [url, hash];
 			
 			// Hide define(), in case the code tries to call it
-			code = 'var define = null;\n';
+			code = 'var define = undefined;\n';
 			code += js;
 			code += 'return ' + (returnValue || name) + ';';
 			var func = Function.apply(null, deps.concat(code));
