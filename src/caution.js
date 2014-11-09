@@ -15,10 +15,10 @@ define([], function () {
 	caution.config = function () {
 		var result = {
 			template: this._t.slice(0),
-			hash: {}
+			init: {}
 		};
-		for (var key in this._h) {
-			result.hash[key] = this._h[key].slice(0);
+		for (var key in this._i) {
+			result.init[key] = this._i[key].slice(0);
 		}
 		return result;
 	};
@@ -26,13 +26,7 @@ define([], function () {
 	caution.dataUrl = function (config, customCode) {
 		config = config || this.config();
 		var js = inlineJs.replace('_t:[]', '_t:' + JSON.stringify(config.template));
-		for (var key in config) {
-			if (key !== 'template') {
-				for (var name in config[key]) {
-					js += 'caution.' + key + '(' + JSON.stringify(name) + ',' + JSON.stringify(config[key][name]) + ');';
-				}
-			}
-		}
+		js += 'caution.init(' + JSON.stringify(config.init) + ');';
 		customCode = customCode || '';
 		if (typeof customCode === 'object') {
 			var vars = [];

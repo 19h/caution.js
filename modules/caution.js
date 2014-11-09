@@ -1,5 +1,5 @@
 define([], function () {
-	var inlineJs = "var define=function n(r,e,t){var o=n._p=n._p||[],a=n._m=n._m||{};t||(t=e||r,e=e&&r||[],r=n._n||Math.random()),o.push([r,e,t]);for(var i=0;i<o.length;i++){for(var f=o[i],e=f[1],s=0,s=0;s<e.length;s++)f=e[s]in a&&f;if(f){for(var t=f[2],c=[],s=0;s<e.length;s++)c[s]=a[e[s]];o.splice(i,1),a[f[0]]=\"function\"==typeof t?t.apply(null,c):t,i=-1}else;}},caution={_t:[],_h:{},_m:{},version:\"0.2.0\",missing:function(n,r){alert(\"Missing safe module: \"+n+\"\\n\"+r.join(\"\\n\"))},get:function(n,r,e){var t=new XMLHttpRequest;t.open(\"GET\",n),t.onreadystatechange=function(){if(4==t.readyState){for(var n=t.responseText.replace(/\\r/g,\"\"),o=sha256(encodeURI(n).replace(/%../g,function(n){return String.fromCharCode(parseInt(n[1]+n[2],16))})),a=0;a<r.length;a++){var i=r[a];if(!(t.status/100^2)&&o.substring(0,i.length)==i)return e(null,n,o)}e(1)}};try{t.send()}catch(o){e(o)}},hash:function(n,r){function e(f,s,c){f?i<o.length?(a=\"string\"==typeof o[i]?o[i++].replace(/{.*?}/,n):o[i++][n],a?t.get(a,r,e):e(f)):t.missing(n,r):(define._n=n,t._m[n]=[a,c],eval(s),define._n=\"\")}var t=this,o=t._t;t._h[n]=r;var a,i=0;e(1)}},sha256=function r(n){function e(n,r){return n>>>r|n<<32-r}for(var t,o,a=Math.pow,i=a(2,32),f=\"length\",s=\"push\",c=\"\",h=[],u=8*n[f],l=r.h=r.h||[],g=r.k=r.k||[],p=g[f],v={},_=2;64>p;_++)if(!v[_]){for(t=0;313>t;t+=_)v[t]=_;l[p]=a(_,.5)*i|0,g[p++]=a(_,1/3)*i|0}for(n+=\"\\x80\";n[f]%64-56;)n+=\"\\x00\";for(t=0;t<n[f];t++){if(o=n.charCodeAt(t),o>>8)return;h[t>>2]|=o<<(3-t)%4*8}for(h[s](u/i|0),h[s](u),o=0;o<h[f];){var d=h.slice(o,o+=16),m=l;for(l=l.slice(0,8),t=0;64>t;t++){var y=d[t-15],M=d[t-2],S=l[0],C=l[4],E=l[7]+(e(C,6)^e(C,11)^e(C,25))+(C&l[5]^~C&l[6])+g[t]+(d[t]=16>t?d[t]:d[t-16]+(e(y,7)^e(y,18)^y>>>3)+d[t-7]+(e(M,17)^e(M,19)^M>>>10)|0),I=(e(S,2)^e(S,13)^e(S,22))+(S&l[1]^S&l[2]^l[1]&l[2]);l=[E+I|0].concat(l),l[4]=l[4]+E|0}for(t=0;8>t;t++)l[t]=l[t]+m[t]|0}for(t=0;8>t;t++)for(o=3;o+1;o--){var R=l[t]>>8*o&255;c+=(16>R?0:\"\")+R.toString(16)}return c};";
+	var inlineJs = "var define=function n(t,e,r){var o=n._p=n._p||[],i=n._m=n._m||{};r||(r=e||t,e=e&&t||[],t=n._n||Math.random()),o.push([t,e,r]);for(var a=0;a<o.length;a++){for(var f=o[a],e=f[1],s=0,s=0;s<e.length;s++)f=e[s]in i&&f;if(f){for(var r=f[2],c=[],s=0;s<e.length;s++)c[s]=i[e[s]];o.splice(a,1),i[f[0]]=\"function\"==typeof r?r.apply(null,c):r,a=-1}else;}},caution={_t:[],_m:{},version:\"0.2.0\",missing:function(n,t){alert(\"Missing safe module: \"+n+\"\\n\"+t.join(\"\\n\"))},loc:function(n){this._t.unshift(n)},get:function(n,t,e){var r=new XMLHttpRequest;r.open(\"GET\",n),r.onreadystatechange=function(){if(4==r.readyState){for(var n=r.responseText.replace(/\\r/g,\"\"),o=sha256(encodeURI(n).replace(/%../g,function(n){return String.fromCharCode(parseInt(n[1]+n[2],16))})),i=0;i<t.length;i++){var a=t[i];if(!(r.status/100^2)&&o.substring(0,a.length)==a)return e(null,n,o)}e(1)}};try{r.send()}catch(o){e(o)}},load:function(n,t){function e(f,s,c){f?a<i.length?(r=\"string\"==typeof i[a]?i[a++].replace(/{.*?}/,n):i[a++][n],r?o.get(r,t,e):e(f)):o.missing(n,t):(define._n=n,o._m[n]=[r,c],eval(s),define._n=\"\")}var r,o=this,i=o._t,a=0;e(1)}},sha256=function t(n){function e(n,t){return n>>>t|n<<32-t}for(var r,o,i=Math.pow,a=i(2,32),f=\"length\",s=\"push\",c=\"\",u=[],l=8*n[f],h=t.h=t.h||[],g=t.k=t.k||[],p=g[f],v={},d=2;64>p;d++)if(!v[d]){for(r=0;313>r;r+=d)v[r]=d;h[p]=i(d,.5)*a|0,g[p++]=i(d,1/3)*a|0}for(n+=\"\\x80\";n[f]%64-56;)n+=\"\\x00\";for(r=0;r<n[f];r++){if(o=n.charCodeAt(r),o>>8)return;u[r>>2]|=o<<(3-r)%4*8}for(u[s](l/a|0),u[s](l),o=0;o<u[f];){var _=u.slice(o,o+=16),m=h;for(h=h.slice(0,8),r=0;64>r;r++){var y=_[r-15],M=_[r-2],S=h[0],C=h[4],E=h[7]+(e(C,6)^e(C,11)^e(C,25))+(C&h[5]^~C&h[6])+g[r]+(_[r]=16>r?_[r]:_[r-16]+(e(y,7)^e(y,18)^y>>>3)+_[r-7]+(e(M,17)^e(M,19)^M>>>10)|0),I=(e(S,2)^e(S,13)^e(S,22))+(S&h[1]^S&h[2]^h[1]&h[2]);h=[E+I|0].concat(h),h[4]=h[4]+E|0}for(r=0;8>r;r++)h[r]=h[r]+m[r]|0}for(r=0;8>r;r++)for(o=3;o+1;o--){var R=h[r]>>8*o&255;c+=(16>R?0:\"\")+R.toString(16)}return c};";
 	
 	if (typeof caution !== 'object') {
 		var func = new Function(inlineJs + 'return caution;');
@@ -15,10 +15,10 @@ define([], function () {
 	caution.config = function () {
 		var result = {
 			template: this._t.slice(0),
-			hash: {}
+			init: {}
 		};
-		for (var key in this._h) {
-			result.hash[key] = this._h[key].slice(0);
+		for (var key in this._i) {
+			result.init[key] = this._i[key].slice(0);
 		}
 		return result;
 	};
@@ -26,13 +26,7 @@ define([], function () {
 	caution.dataUrl = function (config, customCode) {
 		config = config || this.config();
 		var js = inlineJs.replace('_t:[]', '_t:' + JSON.stringify(config.template));
-		for (var key in config) {
-			if (key !== 'template') {
-				for (var name in config[key]) {
-					js += 'caution.' + key + '(' + JSON.stringify(name) + ',' + JSON.stringify(config[key][name]) + ');';
-				}
-			}
-		}
+		js += 'caution.init(' + JSON.stringify(config.init) + ');';
 		customCode = customCode || '';
 		if (typeof customCode === 'object') {
 			var vars = [];

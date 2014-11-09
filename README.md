@@ -2,18 +2,20 @@
 
 This defines a secure JavaScript module loader with an [AMD-compatible API](https://github.com/amdjs/amdjs-api/blob/master/AMD.md).
 
-Locations are added using a URI template based on the module name (unquoted):
+Possible locations are added using a URI template based on the module name (unquoted):
 
 ```javascript
-caution.template('/modules/{}.js');
-caution.template([...]);
+caution.loc('/modules/{}.js');
+caution.loc({
+	"module-name": ...
+});
 ```
 
 Modules are then loaded by supplying a list of acceptable SHA-256 hashes (hex-encoded) of their contents:
 
 ```javascript
 // The supplied hash may be truncated
-caution.hash('main', ['2c38d1ca6c43184c49e3c71d77af359ddaf88ce8f44f6c1455ff69393b129cb7']);
+caution.load('main', ['2c38d1ca6c43184c49e3c71d77af359ddaf88ce8f44f6c1455ff69393b129cb7']);
 ```
 
 Modules themselves can just use the familiar `define()` syntax:
@@ -26,7 +28,7 @@ define(['depA'], function (moduleA) {
 
 ## Why?
 
-The idea is to be small enough (< 2Kb) to reasonably fit in a `data:` URL, allowing secure-boot of a web-app.
+The idea is to be small enough to reasonably fit in a `data:` URL, allowing secure-boot of a web-app.
 
 Although this could be achieved with a single SHA256-verified JS resource (which itself could contain a module loader), having the module-loader in the `data:` URL gives more flexibility when resources have moved - for example, the user could be prompted to provide alternative locations to search for modules.
 
@@ -36,15 +38,13 @@ These are the basic API calls, called "inline" because they are intended to be i
 
 ### `define()`
 
-This is the `define()` function as defined in the [Asynchronous Module Definition](https://github.com/amdjs/amdjs-api/blob/master/AMD.md) spec.
+This is a `define()` function as described in the [Asynchronous Module Definition](https://github.com/amdjs/amdjs-api/blob/master/AMD.md) spec.
 
-Due to the security model of this module loader, it will not fetch any modules for which a hash has not been supplied.
+Due to the security model of the module loader, missing modules will not be automatically fetched (because the hash cannot be known), so dependencies still need to be specified using `caution.load()`.
 
-### `caution.hash(moduleName, hashes)`
+### `caution.load(moduleName, hashes)`
 
-This registers a list of valid SHA-256 hash values for a given module.
-
-It also prompts fetching of the modules using whatever templates are available.
+This loads a module, supplying a list of acceptable SHA-256 hash values (as hexadecimal).
 
 ### `caution.get(url, hashes, callback)`
 

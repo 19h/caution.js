@@ -32,12 +32,14 @@ var define = function define(name, deps, factory) {
 };
 
 var caution = {
-	_t: [], // Set of URI Templates
-	_h: {}, // Set of allowed module hashes
+	_t: [], // List of URI Templates
 	_m: {}, // Where modules end up being successfully loaded from
 	version: VERSION, // Replaced as part of build
 	missing: function (name, hashes) {
 		alert('Missing safe module: ' + name + '\n' + hashes.join('\n'));
+	},
+	loc: function (t) {
+		this._t.unshift(t);
 	},
 	get: function (url, hashes, callback) {
 		var request = new XMLHttpRequest;
@@ -64,10 +66,9 @@ var caution = {
 			callback(e);
 		}
 	},
-	hash: function (name, hashes) {
+	load: function (name, hashes) {
 		var thisCaution = this;
 		var templates = thisCaution._t;
-		thisCaution._h[name] = hashes;
 		var i = 0;
 		var url;
 		function next(error, js, hash) {

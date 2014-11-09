@@ -15,8 +15,8 @@ define(['caution'], function (caution) {
 
 define(['caution', 'marked', 'Prism'], function (caution, marked, Prism) {
 	var config = caution.config();
-	for (var key in config.hash) {
-		config.hash[key] = caution.hashes(key);
+	for (var key in config.load) {
+		config.load[key] = caution.hashes(key);
 	}
 	console.log(config);
 	var dataUrl = caution.dataUrl(config, {baseUrl: baseUrl});

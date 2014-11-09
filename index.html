@@ -2,6 +2,11 @@
 <script>
 var baseUrl = location.href.replace(/[^\/]+$/, '');
 caution._t = [{'main-page': baseUrl + 'main-page.js'}, baseUrl + 'modules/{}.js'];
-caution.hash('caution', ['']);
-caution.hash('main-page', ['']);
+caution._i = {
+	'caution': [''],
+	'main-page': ['']
+};
+for (var key in caution._i) {
+	caution.load(key, caution._i[key]);
+}
 </script>
