@@ -79,7 +79,7 @@ var caution = {
 					if (urls.length) {
 						thisCaution.get(url = urls.shift(), hashes, next);
 					} else {
-						thisCaution.missing(name, hashes);
+						thisCaution.fail(name, hashes);
 					}
 				} else {
 					define._n = name;

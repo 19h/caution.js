@@ -34,20 +34,26 @@
 		}
 	};
 	
+	var oldD = global.define._d;
 	global.define._d = function (deps) {
+		var unhandled = [];
 		for (var i = 0; i < deps.length; i++) {
 			var moduleName = deps[i];
 			if (!knownModules[moduleName]) {
 				knownModules[moduleName] = true;
+				var handled = false;
 				for (var j = 0; j < missingHandlers.length; j++) {
 					var func = missingHandlers[j];
 					if (func(moduleName)) {
 						caution._m[key] = [];
+						handled = true;
 						break;
 					}
 				}
+				if (!handled) unhandled.push(moduleName);
 			}
 		}
+		return oldD ? oldD(unhandled) : unhandled;
 	};
 	// Call the callback for any pending dependencies
 	for (var i = 0; i < (global.define._p || []).length; i++) {
