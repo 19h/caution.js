@@ -72,20 +72,23 @@ var caution = {
 		var urls = thisCaution.urls(name, hashes);
 		var i = 0;
 		var url;
-		function next(error, js, hash) {
-			if (error) {
-				if (urls.length) {
-					thisCaution.get(url = urls.shift(), hashes, next);
+		if (!thisCaution._m[name]) {
+			thisCaution._m[name] = [];
+			function next(error, js, hash) {
+				if (error) {
+					if (urls.length) {
+						thisCaution.get(url = urls.shift(), hashes, next);
+					} else {
+						thisCaution.missing(name, hashes);
+					}
 				} else {
-					thisCaution.missing(name, hashes);
+					define._n = name;
+					thisCaution._m[name] = [url, hash];
+					EVAL(js); // Hack - UglifyJS refuses to mangle variable names when eval() is used, so this is replaced after minifying
+					define._n = '';
 				}
-			} else {
-				define._n = name;
-				thisCaution._m[name] = [url, hash];
-				EVAL(js); // Hack - UglifyJS refuses to mangle variable names when eval() is used, so this is replaced after minifying
-				define._n = '';
 			}
+			next(1);
 		}
-		next(1);
 	}
 };

@@ -10,6 +10,47 @@
 		global.caution = global.caution || result.caution;
 	}
 	
+	var knownModules = {};
+	var missingHandlers = [];
+
+	caution.pending = function (func) {
+		if (!func) {
+			var result = [];
+			for (var key in knownModules) {
+				if (!caution._m[key] && !define._m[key]) result.push(key);
+			}
+			return result;
+		} else {
+			var asyncFunc = function (moduleName) {
+				setTimeout(function () {
+					func(moduleName);
+				}, 4);
+			};
+			var missing = caution.missingDeps();
+			for (var i = 0; i < missing.length; i++) {
+				asyncFunc(missing[i]);
+			}
+			missingHandlers.push(asyncFunc);
+		}
+	};
+	
+	global.define._d = function (deps) {
+		for (var i = 0; i < deps.length; i++) {
+			var moduleName = deps[i];
+			if (!knownModules[moduleName]) {
+				knownModules[moduleName] = true;
+				for (var j = 0; j < missingHandlers.length; j++) {
+					var func = missingHandlers[j];
+					func(moduleName);
+				}
+			}
+		}
+	};
+	// Call the callback for any pending dependencies
+	for (var i = 0; i < (global.define._p || []).length; i++) {
+		global.define._d(global.define._p[i][1]);
+	}
+	
 	function templateToCode(entry) {
 		if (typeof entry === 'string') {
 			return '[' + entry.split(/\{.*?\}/g).map(function (part) {
@@ -74,6 +115,8 @@
 	
 	caution.loadShim = function (name, hashes, returnValue, deps) {
 		var urls = caution.urls(name);
+		caution._m[name] = name;
+
 		caution.getFirst(urls, hashes, function (error, js, hash, url) {
 			if (error) return caution.missing(name, hashes);
 

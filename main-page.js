@@ -18,16 +18,7 @@ define(['caution'], function (caution) {
 });
 
 define(['caution', 'marked', 'Prism'], function (caution, marked, Prism) {
-	/*
-	for (var key in config.load) {
-		config.load[key] = caution.hashes(key);
-	}
-	console.log(config);
-	var dataUrl = caution.dataUrl(config, {baseUrl: baseUrl});
-	console.log('url', dataUrl);
-	console.log('length', dataUrl.length);
-	*/
-	
+
 	Prism.languages.json = Prism.languages.json || Prism.languages.javascript;
 	
 	caution.get(baseUrl + 'README.md', [''], function (error, text) {

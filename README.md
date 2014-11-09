@@ -8,7 +8,7 @@ Loaded scripts are checked against a list of valid SHA-256 hashes.  The `caution
 
 The `define()` function follows the [Asynchronous Module Definition](https://github.com/amdjs/amdjs-api/blob/master/AMD.md) spec.
 
-However, it performs **no automatic fetching** due to the security model of the module loader.  The `caution` module provides hooks to add your own fetching logic, so you could write your own fetching logic (e.g. using public-key signatures for security).
+However, it performs **no automatic fetching** due to the security model of the module loader.  The `caution` module provides hooks (see `caution.pending()`), so you can write your own fetching logic (e.g. using public-key signatures for security).
 
 ## Caution API
 
@@ -17,6 +17,12 @@ All hash values are SHA-256 hashes, written as hexadecimal.  When comparing hash
 ### `caution.load(moduleName, hashes)`
 
 This loads a module, checking against a list of acceptable hash values.
+
+### `caution.loadShim(moduleName, hashes, ?returnValue, ?dependencies)`
+
+For modules that don't support AMD syntax, this wraps them in a `define()` call.
+
+The optional `returnValue` argument specifies JavaScript code to return at the end - this defaults to `moduleName`.
 
 ### `caution.get(url, hashes, function (error, text, hash) {...})`
 
@@ -40,9 +46,7 @@ This adds a place to look for modules.  `urls` must be one of:
 
 ### `caution.dataUrl(config, ?customCode)`
 
-This returns a `data:` URL for an HTML page containing JavaScript code for the inline API and the config.
-
-`config` is an object of the form:
+This returns a `data:` URL for a secure-boot HTML page.  `config` must be an object of the form:
 
 ```json
 {
@@ -57,16 +61,16 @@ If present, `customCode` must be a string (JavaScript code), or an object that w
 
 ### `caution.inlineJs(config, ?customCode)`
 
-Like `caution.dataUrl()`, except it returns just the inline JS instead of a `data:` URL HTML page.
-
-### `caution.loadShim(moduleName, hashes, ?returnValue, ?dependencies)`
-
-For modules that don't support AMD syntax, this wraps them in a `define()` call.
-
-The optional `returnValue` argument specifies JavaScript code to return at the end - this defaults to `moduleName`.
+Like `caution.dataUrl()`, except it returns just the inline JS instead of a `data:` URL.
 
 ### `caution.moduleHash(?moduleName)`
 
 This returns the hash value for the currently-loaded version of a module.
 
 If `moduleName` is omitted, it returns a map from all known modules to their hashes.
+
+### `caution.pending(?callback)`
+
+If no callback is supplied, this returns a list of all module names that have not yet been resolved.
+
+If a callback is supplied, then it is called when a module is referenced that is not yet defined.
