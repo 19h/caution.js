@@ -5,7 +5,7 @@ function minify(input, name) {
 	var minified = uglify.minify(input);
 
 	var code = minified.code;
-	code = code.replace(/\u0080/g, '\\x80').replace(/EVAL/g, 'eval');
+	code = code.replace(/\u0080/g, '\\x80').replace(/EVAL/g, 'eval').replace(/FUNCTION/g, 'Function');
 
 	console.log(name + ':\t' + code.length + ' chars');
 	return code;

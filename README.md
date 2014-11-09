@@ -8,7 +8,9 @@ Loaded scripts are checked against a list of valid SHA-256 hashes.  The `caution
 
 The `define()` function follows the [Asynchronous Module Definition](https://github.com/amdjs/amdjs-api/blob/master/AMD.md) spec.
 
-However, it performs **no automatic fetching** due to the security model of the module loader.  The `caution` module provides hooks (see `caution.pending()`), so you can write your own fetching logic (e.g. using public-key signatures for security).
+However, it performs **no automatic fetching** due to the security model of the module loader.  The `caution` module provides hooks (see `caution.pending()`), so you can write your own automatic-fetching logic as a separate module.
+
+The value of `define.amd` is `{caution: VERSION}`, where VERSION is the version of the `caution` module used to generate it.
 
 ## Caution API
 

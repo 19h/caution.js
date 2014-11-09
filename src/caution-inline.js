@@ -1,3 +1,6 @@
+// Hack - UglifyJS refuses to mangle variable names when eval() or Function are used
+//	therefore we use EVAL and FUNCTION, and replace them after minifying
+
 var define = function define(name, deps, factory) {
 	var pending = define._p = define._p || [];
 	var modules = define._m = define._m || {};
@@ -43,53 +46,52 @@ var caution = {
 		return [];
 	},
 	init: function (name, versions, hashes) {
-		hashes = hashes || versions;
-
 		var thisCaution = this;
 		var urls = thisCaution.urls(name, versions);
-		var i = 0;
 		var url;
+		
+		hashes = hashes || versions;
 		
 		if (!thisCaution._m[name]) {
 			thisCaution._m[name] = [];
-			function next(error, js, hash) {
-				if (error) {
-					if (urls.length) {
-						// AJAX request with next URL
-						var request = new XMLHttpRequest;
-						request.open("GET", url = urls.shift());
-						request.onreadystatechange = function () {
-							if (request.readyState == 4) {
-								var content = request.responseText.replace(/\r/g, ''); // Normalise for consistent behaviour across webserver OS
-								// Check validity
-								var hash = sha256(encodeURI(content).replace(/%../g, function (part) {
-									return String.fromCharCode('0x' + part[1] + part[2] - 0);
-								}));
-								var match = 0;
-								var expected;
-								while (expected = hashes.pop()) {
-									match |= (EVAL('/^' + expected + '/').test(hash));
-								}
-								if (!((request.status/100)^2) && match) {
-									return next(null, content);
-								} else {
-									next(1);
-								}
+			
+			function next(error) {
+				if (urls.length) {
+					// AJAX request with next URL
+					var request = new XMLHttpRequest;
+					request.open("GET", url = urls.shift());
+					request.onreadystatechange = function () {
+						if (request.readyState == 4) {
+							var content = request.responseText.replace(/\r/g, ''); // Normalise for consistent behaviour across webserver OS
+
+							// Check validity
+							var hash = sha256(encodeURI(content).replace(/%../g, function (part) {
+								return String.fromCharCode('0x' + part[1] + part[2] - 0);
+							}));
+							var match = 0;
+							var expected;
+							while (expected = hashes.pop()) {
+								match |= (EVAL('/^' + expected + '/').test(hash));
 							}
-						};
-						try {
-							request.send();
-						} catch (e) {
-							next(e);
+							
+							if (!((request.status/100)^2) && match) {
+								// It maches - load it!
+								define._n = name;
+								thisCaution._m[name] = [url, hash];
+								FUNCTION(content)();
+								define._n = '';
+							} else {
+								next(1);
+							}
 						}
-					} else {
-						thisCaution.fail(name, versions);
+					};
+					try {
+						request.send();
+					} catch (e) {
+						next(e);
 					}
 				} else {
-					define._n = name;
-					thisCaution._m[name] = [url, hash];
-					EVAL(js); // Hack - UglifyJS refuses to mangle variable names when eval() is used, so this is replaced after minifying
-					define._n = '';
+					thisCaution.fail(name, versions);
 				}
 			}
 			next(1);
