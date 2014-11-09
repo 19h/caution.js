@@ -38,18 +38,18 @@ var define = function define(name, deps, factory) {
 };
 define.amd = {caution: VERSION};
 
+// This is the seed of the caution module - _m, fail() and urls() are kept on for continuity
 define._c = {
 	_m: {}, // Existing modules, (name -> [url, hash])
 	fail: function (name, versions) {
 		alert('Missing safe module: ' + name + '\n' + versions.join('\n'));
 	},
-	urls: function (moduleName, versions) {
+	urls: function (moduleName, versions, error) {
 		return [];
 	},
 	_init: function (name, versions, hashes) {
 		var thisCaution = this;
 		var urls = thisCaution.urls(name, versions);
-		var url;
 		
 		hashes = hashes || versions;
 		
@@ -60,12 +60,13 @@ define._c = {
 				if (urls.length) {
 					// AJAX request with next URL
 					var request = new XMLHttpRequest;
-					request.open("GET", url = urls.shift());
+					var url = urls.shift();
+					request.open("GET", url);
 					request.onreadystatechange = function () {
 						if (request.readyState == 4) {
 							var content = request.responseText.replace(/\r/g, ''); // Normalise for consistent behaviour across webserver OS
 
-							// Check validity
+							// Check validity against supplied hashes
 							var hash = sha256(encodeURI(content).replace(/%../g, function (part) {
 								return String.fromCharCode('0x' + part[1] + part[2] - 0);
 							}));
@@ -96,7 +97,7 @@ define._c = {
 					thisCaution.fail(name, versions, error);
 				}
 			}
-			next(1);
+			next();
 		}
 	}
 };

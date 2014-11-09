@@ -11,7 +11,7 @@
 	}
 	var caution = define._c; // Yeah, that's nasty.
 	
-	var sha256 = caution.sha256 = result.sha256;
+	var sha256 = result.sha256;
 
 	// We preserve the existing definitions for _m, urls, and fail, but everything else is defined here
 
