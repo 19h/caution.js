@@ -126,11 +126,10 @@
 
 			caution._m[name] = [url, hash];
 			
-			// Hack, in case the code actually uses define()
-			var code = 'define._n = ' + JSON.stringify(name) + ';\n';
+			// Hide define(), in case the code tries to call it
+			code = 'var define = null;\n';
 			code += js;
-			code += '\n;define._n = "";\n';
-			code += 'return define._m[' + JSON.stringify(name) + '] || (' + (returnValue || name) + ');';
+			code += 'return ' + (returnValue || name) + ';';
 			var func = Function.apply(null, deps.concat(code));
 			define(name, deps, func);
 		});

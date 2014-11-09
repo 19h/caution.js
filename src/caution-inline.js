@@ -37,7 +37,7 @@ define.amd = {caution: VERSION};
 
 var caution = {
 	_m: {}, // Where modules end up being successfully loaded from
-	missing: function (name, hashes) {
+	fail: function (name, hashes) {
 		alert('Missing safe module: ' + name + '\n' + hashes.join('\n'));
 	},
 	urls: function (moduleName) {
