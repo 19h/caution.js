@@ -17,8 +17,9 @@ var packageInfo = require('./package.json');
 var version = packageInfo.version;
 
 minify([__dirname + '/src/caution-inline.js'], 'inline only')
-var minified = minify([__dirname + '/src/caution-inline.js', __dirname + '/node_modules/tiny-sha256/sha256.js'], 'inline+sha');
+var minified = minify([__dirname + '/node_modules/tiny-sha256/sha256.js', __dirname + '/src/caution-inline.js'], 'inline+sha');
 minified = minified.replace('VERSION', JSON.stringify(version));
+fs.writeFileSync('inline.js', minified);
 
 var main = fs.readFileSync(__dirname + '/src/caution.js', {encoding: 'utf-8'});
 main = main.replace('INLINE', JSON.stringify(minified));

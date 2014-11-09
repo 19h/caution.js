@@ -1,16 +1,16 @@
 (function (global) {
-	var inlineJs = "var define=function n(r,e,t){var o=n._p=n._p||[],a=n._m=n._m||{};t||(t=e||r,e=e&&r||[],r=n._n||Math.random()),o.push([r,e,t]),n._d&&n._d(e);for(var f=0;f<o.length;f++){for(var i=o[f],e=i[1],c=0,c=0;c<e.length;c++)i=e[c]in a&&i;if(i){for(var t=i[2],s=[],c=0;c<e.length;c++)s[c]=a[e[c]];o.splice(f,1),a[i[0]]=\"function\"==typeof t?t.apply(window,s):t,f=-1}else;}},caution={_m:{},fail:function(n,r){alert(\"Missing safe module: \"+n+\"\\n\"+r.join(\"\\n\"))},urls:function(){return[]},init:function(n,r,e){function t(){if(f.length){var i=new XMLHttpRequest;i.open(\"GET\",o=f.shift()),i.onreadystatechange=function(){if(4==i.readyState){for(var r,f=i.responseText.replace(/\\r/g,\"\"),c=sha256(encodeURI(f).replace(/%../g,function(n){return String.fromCharCode(\"0x\"+n[1]+n[2]-0)})),s=0;r=e.pop();)s|=eval(\"/^\"+r+\"/\").test(c);i.status/100^2||!s?t(1):(define._n=n,a._m[n]=[o,c],Function(f)(),define._n=\"\")}};try{i.send()}catch(c){t(c)}}else a.fail(n,r)}var o,a=this,f=a.urls(n,r);e=e||r,a._m[n]||(a._m[n]=[],t(1))}};define.amd={caution:\"0.4.0\"};var sha256=function r(n){function e(n,r){return n>>>r|n<<32-r}for(var t,o,a=Math.pow,f=a(2,32),i=\"length\",c=\"push\",s=\"\",u=[],h=8*n[i],l=r.h=r.h||[],d=r.k=r.k||[],p=d[i],v={},_=2;64>p;_++)if(!v[_]){for(t=0;313>t;t+=_)v[t]=_;l[p]=a(_,.5)*f|0,d[p++]=a(_,1/3)*f|0}for(n+=\"\\x80\";n[i]%64-56;)n+=\"\\x00\";for(t=0;t<n[i];t++){if(o=n.charCodeAt(t),o>>8)return;u[t>>2]|=o<<(3-t)%4*8}for(u[c](h/f|0),u[c](h),o=0;o<u[i];){var g=u.slice(o,o+=16),m=l;for(l=l.slice(0,8),t=0;64>t;t++){var y=g[t-15],w=g[t-2],C=l[0],M=l[4],S=l[7]+(e(M,6)^e(M,11)^e(M,25))+(M&l[5]^~M&l[6])+d[t]+(g[t]=16>t?g[t]:g[t-16]+(e(y,7)^e(y,18)^y>>>3)+g[t-7]+(e(w,17)^e(w,19)^w>>>10)|0),x=(e(C,2)^e(C,13)^e(C,22))+(C&l[1]^C&l[2]^l[1]&l[2]);l=[S+x|0].concat(l),l[4]=l[4]+S|0}for(t=0;8>t;t++)l[t]=l[t]+m[t]|0}for(t=0;8>t;t++)for(o=3;o+1;o--){var E=l[t]>>8*o&255;s+=(16>E?0:\"\")+E.toString(16)}return s};";
+	var inlineJs = "var sha256=function n(e){function r(n,e){return n>>>e|n<<32-e}for(var t,o,f=Math.pow,i=f(2,32),a=\"length\",c=\"push\",s=\"\",u=[],h=8*e[a],l=n.h=n.h||[],d=n.k=n.k||[],p=d[a],_={},v=2;64>p;v++)if(!_[v]){for(t=0;313>t;t+=v)_[t]=v;l[p]=f(v,.5)*i|0,d[p++]=f(v,1/3)*i|0}for(e+=\"\\x80\";e[a]%64-56;)e+=\"\\x00\";for(t=0;t<e[a];t++){if(o=e.charCodeAt(t),o>>8)return;u[t>>2]|=o<<(3-t)%4*8}for(u[c](h/i|0),u[c](h),o=0;o<u[a];){var g=u.slice(o,o+=16),m=l;for(l=l.slice(0,8),t=0;64>t;t++){var w=g[t-15],y=g[t-2],C=l[0],M=l[4],S=l[7]+(r(M,6)^r(M,11)^r(M,25))+(M&l[5]^~M&l[6])+d[t]+(g[t]=16>t?g[t]:g[t-16]+(r(w,7)^r(w,18)^w>>>3)+g[t-7]+(r(y,17)^r(y,19)^y>>>10)|0),x=(r(C,2)^r(C,13)^r(C,22))+(C&l[1]^C&l[2]^l[1]&l[2]);l=[S+x|0].concat(l),l[4]=l[4]+S|0}for(t=0;8>t;t++)l[t]=l[t]+m[t]|0}for(t=0;8>t;t++)for(o=3;o+1;o--){var E=l[t]>>8*o&255;s+=(16>E?0:\"\")+E.toString(16)}return s},define=function e(n,r,t){var o=e._p=e._p||[],f=e._m=e._m||{};t||(t=r||n,r=r&&n||[],n=e._n||Math.random()),o.push([n,r,t]),e._d&&e._d(r);for(var i=0;i<o.length;i++){for(var a=o[i],r=a[1],c=0,c=0;c<r.length;c++)a=r[c]in f&&a;if(a){for(var t=a[2],s=[],c=0;c<r.length;c++)s[c]=f[r[c]];o.splice(i,1),f[a[0]]=\"function\"==typeof t?t.apply(window,s):t,i=-1}else;}};define.amd={caution:\"0.4.0\"},define._c={_m:{},fail:function(n,e){alert(\"Missing safe module: \"+n+\"\\n\"+e.join(\"\\n\"))},urls:function(){return[]},_init:function(n,e,r){function t(a){if(i.length){var c=new XMLHttpRequest;c.open(\"GET\",o=i.shift()),c.onreadystatechange=function(){if(4==c.readyState){for(var e,i=c.responseText.replace(/\\r/g,\"\"),a=sha256(encodeURI(i).replace(/%../g,function(n){return String.fromCharCode(\"0x\"+n[1]+n[2]-0)})),s=0;e=r.pop();)s|=eval(\"/^\"+e+\"/\").test(a);c.status/100^2||!s?t(1):(define._n=n,f._m[n]=[o,a],new Function(i)(),define._n=\"\")}};try{c.send()}catch(s){t(s)}}else f.fail(n,e,a)}var o,f=this,i=f.urls(n,e);r=r||e,f._m[n]||(f._m[n]=[],t(1))}};";
 
 	// We execute it (to get sha256), but we don't use caution/define unless we need to
-	var func = new Function(inlineJs + 'return {caution: caution, define: define, sha256: sha256};');
+	var func = new Function(inlineJs + 'return {define: define, sha256: sha256};');
 	var result = func.call(global);
 	
 	// Set up the global "define" if it doesn't already exist
 	if (typeof define !== 'function' || !define.amd || !define.amd.caution) {		
 		define = global.define = result.define;
-		// We can't replace the global "caution" module unless we're also replacing define(), otherwise it will refer to the wrong version of define()
-		caution = global.caution = result.caution;
 	}
+	var caution = define._c; // Yeah, that's nasty.
+	
 	var sha256 = caution.sha256 = result.sha256;
 
 	// We preserve the existing definitions for _m, urls, and fail, but everything else is defined here
@@ -170,7 +170,7 @@
 			}
 		});
 		for (var key in config.load) {
-			js += 'caution.init(' + JSON.stringify(key) + ',' + JSON.stringify(config.load[key]) + ');';
+			js += 'define._c._init(' + JSON.stringify(key) + ',' + JSON.stringify(config.load[key]) + ');';
 		}
 		
 		customCode = customCode || '';

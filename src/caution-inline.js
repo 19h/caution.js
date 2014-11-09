@@ -36,8 +36,9 @@ var define = function define(name, deps, factory) {
 		}
 	}
 };
+define.amd = {caution: VERSION};
 
-var caution = {
+define._c = {
 	_m: {}, // Existing modules, (name -> [url, hash])
 	fail: function (name, versions) {
 		alert('Missing safe module: ' + name + '\n' + versions.join('\n'));
@@ -45,7 +46,7 @@ var caution = {
 	urls: function (moduleName, versions) {
 		return [];
 	},
-	init: function (name, versions, hashes) {
+	_init: function (name, versions, hashes) {
 		var thisCaution = this;
 		var urls = thisCaution.urls(name, versions);
 		var url;
@@ -78,24 +79,24 @@ var caution = {
 								// It maches - load it!
 								define._n = name;
 								thisCaution._m[name] = [url, hash];
-								FUNCTION(content)();
+								new FUNCTION(content)();
 								define._n = '';
 							} else {
 								next(1);
 							}
 						}
 					};
+					
 					try {
 						request.send();
 					} catch (e) {
 						next(e);
 					}
 				} else {
-					thisCaution.fail(name, versions);
+					thisCaution.fail(name, versions, error);
 				}
 			}
 			next(1);
 		}
 	}
 };
-define.amd = {caution: VERSION};

@@ -2,15 +2,15 @@
 	var inlineJs = INLINE;
 
 	// We execute it (to get sha256), but we don't use caution/define unless we need to
-	var func = new Function(inlineJs + 'return {caution: caution, define: define, sha256: sha256};');
+	var func = new Function(inlineJs + 'return {define: define, sha256: sha256};');
 	var result = func.call(global);
 	
 	// Set up the global "define" if it doesn't already exist
 	if (typeof define !== 'function' || !define.amd || !define.amd.caution) {		
 		define = global.define = result.define;
-		// We can't replace the global "caution" module unless we're also replacing define(), otherwise it will refer to the wrong version of define()
-		caution = global.caution = result.caution;
 	}
+	var caution = define._c; // Yeah, that's nasty.
+	
 	var sha256 = caution.sha256 = result.sha256;
 
 	// We preserve the existing definitions for _m, urls, and fail, but everything else is defined here
@@ -170,7 +170,7 @@
 			}
 		});
 		for (var key in config.load) {
-			js += 'caution.init(' + JSON.stringify(key) + ',' + JSON.stringify(config.load[key]) + ');';
+			js += 'define._c._init(' + JSON.stringify(key) + ',' + JSON.stringify(config.load[key]) + ');';
 		}
 		
 		customCode = customCode || '';
