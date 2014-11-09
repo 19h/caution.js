@@ -1,9 +1,4 @@
-<!--<script src="inline.js"></script>-->
-<script>
-var VERSION = 'dev', EVAL = eval, FUNCTION = Function;
-</script>
-<script src="src/caution-inline.js"></script>
-<script src="node_modules/tiny-sha256/sha256.js"></script>
+<script src="modules/caution.js"></script>
 <script>
 var baseUrl = location.href.replace(/[^\/]+$/, '');
 caution.urls = function (moduleName) {
@@ -12,6 +7,7 @@ caution.urls = function (moduleName) {
 		'modules/' + moduleName + '.js'
 	];
 };
+
 caution.load('caution', ['']);
 caution.load('main-page', ['']);
 define(['caution', 'main-page'], function (caution) {
