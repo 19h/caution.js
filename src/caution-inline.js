@@ -42,26 +42,6 @@ var caution = {
 	urls: function (moduleName, versions) {
 		return [];
 	},
-	get: function (url, isValid, callback) {
-		var thisCaution = this;
-		var request = new XMLHttpRequest;
-		request.open("GET", url);
-		request.onreadystatechange = function () {
-			if (request.readyState == 4) {
-				var content = request.responseText.replace(/\r/g, ''); // Normalise for consistent behaviour across webserver OS
-				if (!((request.status/100)^2) && isValid(content)) {
-					return callback(null, content);
-				} else {
-					callback(1);
-				}
-			}
-		};
-		try {
-			request.send();
-		} catch (e) {
-			callback(e);
-		}
-	},
 	init: function (name, versions, hashes) {
 		function isValid(text) {
 			var hash = sha256(encodeURI(text).replace(/%../g, function (part) {
@@ -85,7 +65,24 @@ var caution = {
 			function next(error, js, hash) {
 				if (error) {
 					if (urls.length) {
-						thisCaution.get(url = urls.shift(), isValid, next);
+						// AJAX request with next URL
+						var request = new XMLHttpRequest;
+						request.open("GET", url = urls.shift());
+						request.onreadystatechange = function () {
+							if (request.readyState == 4) {
+								var content = request.responseText.replace(/\r/g, ''); // Normalise for consistent behaviour across webserver OS
+								if (!((request.status/100)^2) && isValid(content)) {
+									return next(null, content);
+								} else {
+									next(1);
+								}
+							}
+						};
+						try {
+							request.send();
+						} catch (e) {
+							next(e);
+						}
 					} else {
 						thisCaution.fail(name, versions);
 					}
