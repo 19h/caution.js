@@ -18,8 +18,8 @@ define(['caution', 'main-page'], function (caution) {
 	var config = {
 		paths: [{'main-page': baseUrl + 'main-page.js'}, baseUrl + 'modules/{}.js'],
 		load: {
-			'caution': [caution.hash('caution')],
-			'main-page': [caution.hash('main-page')]
+			'caution': [caution.moduleHash('caution')],
+			'main-page': [caution.moduleHash('main-page')]
 		}
 	};
 	

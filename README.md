@@ -1,73 +1,72 @@
 # caution.js
 
-This defines a secure JavaScript module loader with an [AMD-compatible API](https://github.com/amdjs/amdjs-api/blob/master/AMD.md).
+This defines a secure JavaScript module loader with an [AMD-compatible API](https://github.com/amdjs/amdjs-api/blob/master/AMD.md).  It sets up a `define()` function, as well as the `caution` module.
 
-Modules are then loaded by supplying a list of acceptable SHA-256 hashes (hex-encoded) of their contents:
+Loaded scripts are checked against a list of valid SHA-256 hashes.  The `caution` module can also generate HTML-page `data:` URLs for creating secure-boot web-apps, containing the `define()` and enough logic to verify loaded modules using SHA-256.
 
-```javascript
-// The supplied hash may be truncated
-caution.load('main', ['2c38d1ca6c43184c49e3c71d77af359ddaf88ce8f44f6c1455ff69393b129cb7']);
-```
+## `define()`
 
-Modules themselves can just use the familiar `define()` syntax:
+The `define()` function follows the [Asynchronous Module Definition](https://github.com/amdjs/amdjs-api/blob/master/AMD.md) spec.
 
-```javascript
-define(['depA'], function (moduleA) {
-	return {...};
-});
-```
+However, it performs **no automatic fetching** due to the security model of the module loader.  The `caution` module provides hooks to add your own fetching logic, so you could write your own fetching logic (e.g. using public-key signatures for security).
 
-## Why?
+## Caution API
 
-The idea is to be small enough to reasonably fit in a `data:` URL, allowing secure-boot of a web-app.
-
-Although this could be achieved with a single SHA256-verified JS resource (which itself could contain a module loader), having the module-loader in the `data:` URL gives more flexibility when resources have moved - for example, the user could be prompted to provide alternative locations to search for modules.
-
-## Inline API
-
-These are the basic API calls, called "inline" because they are intended to be included in `data:`URLs.
-
-### `define()`
-
-This is a `define()` function as described in the [Asynchronous Module Definition](https://github.com/amdjs/amdjs-api/blob/master/AMD.md) spec.
-
-Due to the security model of the module loader, missing modules will not be automatically fetched (because the hash cannot be known), so dependencies still need to be specified using `caution.load()`.
+All hash values are SHA-256 hashes, written as hexadecimal.  When comparing hashes, they are prefix-matched (so they can be truncated, and `""` will match anything).
 
 ### `caution.load(moduleName, hashes)`
 
-This loads a module, supplying a list of acceptable SHA-256 hash values (as hexadecimal).
+This loads a module, checking against a list of acceptable hash values.
 
-### `caution.get(url, hashes, callback)`
+### `caution.get(url, hashes, function (error, text, hash) {...})`
 
 This is a very simplistic text-only method to fetch resources.  If one of the hashes matches, then the content is returned (without error) - otherwise, a truthy value is returned as the error.
 
-## Full/module API
+`hashes` must be an array.  The `hash` argument in the callback is the hash of the content, and can be used to figure out which entry in `hashes` matched.
 
-There is a `caution` module, which enhances the inline API with more methods.
+**Warning:** this method (used by `caution.load()` and others) normalises newlines to `\n` (Unix) before calculating the hash.
 
-This module is not essential, and it's possible to use caution.js without it - however it is required to generate new `data:` URLs containing the inline API.
+### `caution.getFirst(urls, hashes, function (error, text, hash, url) {...})`
 
-### `caution.config()`
+This method is similar to `caution.get()`, except it tries a series of URLs in sequence.  The successful URL is returned to the callback.
 
-This returns an object representing the currently-loaded set of templates, modules and hashes, e.g.:
+### `caution.addUrls(urls)`
+
+This adds a place to look for modules.  `urls` must be one of:
+
+* a URI template (string), where `{}` is replaced by the module name (e.g. `/modules/{}.js`)
+* a map (object) from module names to URLs (string or list)
+* a function returning a list of possible URLs, given two arguments: the module name and a list of allowed hashes
+
+### `caution.dataUrl(config, ?customCode)`
+
+This returns a `data:` URL for an HTML page containing JavaScript code for the inline API and the config.
+
+`config` is an object of the form:
 
 ```json
 {
-	"template": [...],
-	"hash": {
-		"moduleName": [...]
+	paths: [...], // entries must be objects or strings, same form as caution.addUrls()
+	load: {
+		'module-name': [...] // list of allowed hashes
 	}
 }
 ```
 
-### `caution.dataUrl(config)`
+If present, `customCode` must be a string (JavaScript code), or an object that will be converted into global variables (e.g. `{globalState: 12345}`).
 
-This returns a `data:` URL for an HTML page containing JavaScript code for the inline API and the config.
+### `caution.inlineJs(config, ?customCode)`
 
-This is intended for when an update is available, or alternative locations have been supplied, and the user wishes to persist the change by generating (and re-bookmarking) another URL.
+Like `caution.dataUrl()`, except it returns just the inline JS instead of a `data:` URL HTML page.
 
-### `caution.hashShim(moduleName, url, hashes, ?returnValue)`
+### `caution.loadShim(moduleName, hashes, ?returnValue, ?dependencies)`
 
 For modules that don't support AMD syntax, this wraps them in a `define()` call.
 
-The optional `returnValue` argument specifies JavaScript code to return at the end.  This defaults to `moduleName`.
+The optional `returnValue` argument specifies JavaScript code to return at the end - this defaults to `moduleName`.
+
+### `caution.moduleHash(?moduleName)`
+
+This returns the hash value for the currently-loaded version of a module.
+
+If `moduleName` is omitted, it returns a map from all known modules to their hashes.

@@ -1,9 +1,13 @@
-define('caution', [], function () {
+(function (global) {
 	var inlineJs = INLINE;
-	
-	if (typeof caution !== 'object') {
-		var func = new Function(inlineJs + 'return caution;');
-		caution = func();
+
+	// Set up the global "caution" and "define"
+	if (typeof caution !== 'object' || typeof define !== 'function') {
+		var func = new Function(inlineJs + 'return {caution: caution, define: define};');
+		var result = func();
+		
+		global.define = global.define || result.define;
+		global.caution = global.caution || result.caution;
 	}
 	
 	function templateToCode(entry) {
@@ -47,8 +51,10 @@ define('caution', [], function () {
 		}
 	};
 	
-	caution.addUrls = function (urls) {
-		var func = new Function('m', 'h', 'return [].concat(' + templateToCode(urls) + ')');
+	caution.addUrls = function (func) {
+		if (typeof func !== 'function') {
+			func = new Function('m', 'h', 'return [].concat(' + templateToCode(func) + ')');
+		}
 		var oldFunc = caution.urls;
 		caution.urls = function (m, h) {
 			return func(m, h).concat(oldFunc.call(this, m, h));
@@ -77,7 +83,7 @@ define('caution', [], function () {
 		});
 	};
 	
-	caution.hash = function (moduleName) {
+	caution.moduleHash = function (moduleName) {
 		if (moduleName) return (caution._m[moduleName] || [])[1];
 		
 		var result = {};
@@ -86,6 +92,9 @@ define('caution', [], function () {
 		}
 		return result;
 	};
-	
+})(this || window);
+
+// Register the global variable as a module
+define('caution', [], function () {
 	return caution;
 });
