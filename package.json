@@ -1,7 +1,7 @@
 {
   "name": "caution",
-  "version": "0.2.0",
-  "description": "Tamper-proof web apps",
+  "version": "0.3.0",
+  "description": "Secure module loader for tamper-proof web apps",
   "main": "caution.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
