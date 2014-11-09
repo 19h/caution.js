@@ -50,9 +50,9 @@ This returns a `data:` URL for a secure-boot HTML page.  `config` must be an obj
 
 ```json
 {
-	paths: [...], // entries must be objects or strings, same form as caution.addUrls()
-	load: {
-		'module-name': [...] // list of allowed hashes
+	"paths": [...], // entries must be objects or strings, same form as caution.addUrls()
+	"load": {
+		"module-name": [...] // list of allowed hashes
 	}
 }
 ```
