@@ -43,17 +43,6 @@ var caution = {
 		return [];
 	},
 	init: function (name, versions, hashes) {
-		function isValid(text) {
-			var hash = sha256(encodeURI(text).replace(/%../g, function (part) {
-				return String.fromCharCode('0x' + part[1] + part[2] - 0);
-			}));
-			var match = 0;
-			var expected;
-			while (expected = hashes.pop()) {
-				match |= (EVAL('/^' + expected + '/').test(hash));
-			}
-			return match;
-		}
 		hashes = hashes || versions;
 
 		var thisCaution = this;
@@ -72,7 +61,16 @@ var caution = {
 						request.onreadystatechange = function () {
 							if (request.readyState == 4) {
 								var content = request.responseText.replace(/\r/g, ''); // Normalise for consistent behaviour across webserver OS
-								if (!((request.status/100)^2) && isValid(content)) {
+								// Check validity
+								var hash = sha256(encodeURI(content).replace(/%../g, function (part) {
+									return String.fromCharCode('0x' + part[1] + part[2] - 0);
+								}));
+								var match = 0;
+								var expected;
+								while (expected = hashes.pop()) {
+									match |= (EVAL('/^' + expected + '/').test(hash));
+								}
+								if (!((request.status/100)^2) && match) {
 									return next(null, content);
 								} else {
 									next(1);
