@@ -12,7 +12,23 @@ However, it performs **no automatic fetching** due to the security model of the 
 
 ## Caution API
 
-All hash values are SHA-256 hashes, written as hexadecimal.  When comparing hashes, they are prefix-matched (so they can be truncated, and `""` will match anything).
+This is the API for the `caution` module.
+
+Hash values are SHA-256 hashes, written as hexadecimal.  When comparing hashes, they are prefix-matched (so they can be truncated, and `""` will match anything).
+
+### `caution.get(url, validation, function (error, text, hash) {...})`
+
+This is a basic text-only method to fetch resources.  If one of the hashes matches, then the content is returned (without error) - otherwise, a truthy value is returned as the error.
+
+`validation ` must be one of:
+
+* a SHA-256 hash
+* an array of SHA-256 hashes
+* a function returning `true` if valid: `function (text, hash, httpStatusCode) {...}`
+
+The `hash` argument in the callback is the hash of the content
+
+**Warning:** this method (used by `caution.load()` and others) normalises newlines to `\n` (Unix) before calculating the hash.
 
 ### `caution.load(moduleName, hashes)`
 
@@ -23,14 +39,6 @@ This loads a module, checking against a list of acceptable hash values.
 For modules that don't support AMD syntax, this wraps them in a `define()` call.
 
 The optional `returnValue` argument specifies JavaScript code to return at the end - this defaults to `moduleName`.
-
-### `caution.get(url, hashes, function (error, text, hash) {...})`
-
-This is a very simplistic text-only method to fetch resources.  If one of the hashes matches, then the content is returned (without error) - otherwise, a truthy value is returned as the error.
-
-`hashes` must be an array.  The `hash` argument in the callback is the hash of the content, and can be used to figure out which entry in `hashes` matched.
-
-**Warning:** this method (used by `caution.load()` and others) normalises newlines to `\n` (Unix) before calculating the hash.
 
 ### `caution.getFirst(urls, hashes, function (error, text, hash, url) {...})`
 

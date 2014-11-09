@@ -8,8 +8,12 @@ caution.urls = function (moduleName) {
 		'modules/' + moduleName + '.js'
 	];
 };
-caution.load('caution', ['']);
-caution.load('main-page', ['']);
+caution.addValid(function () {
+	return true; // No verification
+});
+
+caution.load('caution');
+caution.load('main-page');
 define(['caution', 'main-page'], function (caution) {
 	var config = {
 		paths: [{'main-page': baseUrl + 'main-page.js'}, baseUrl + 'modules/{}.js'],
@@ -20,7 +24,7 @@ define(['caution', 'main-page'], function (caution) {
 	};
 	
 	var url = caution.dataUrl(config, {baseUrl: baseUrl});
-	if (!/noredirect/.test(location.href)) return location.replace(url);
+	if (/#redirect/.test(location.href)) return location.replace(url);
 
 	var js = caution.inlineJs(config, {baseUrl: baseUrl});
 	console.log(js);

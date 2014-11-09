@@ -1,14 +1,95 @@
 (function (global) {
 	var inlineJs = INLINE;
+
+	// We execute it (to get sha256), but we don't use caution/define unless we need to
+	var func = new Function(inlineJs + 'return {caution: caution, define: define, sha256: sha256};');
+	var result = func.call(global);
 	
 	// Set up the global "define" if it doesn't already exist
 	if (typeof define !== 'function' || !define.amd || !define.amd.caution) {		
-		var func = new Function(inlineJs + 'return {caution: caution, define: define};');
-		var result = func.call(global);
 		define = global.define = result.define;
 		// We can't replace the global "caution" module unless we're also replacing define(), otherwise it will refer to the wrong version of define()
 		caution = global.caution = result.caution;
 	}
+	var sha256 = caution.sha256 = result.sha256;
+
+	// We preserve the existing definitions for _m, urls, and fail, but everything else is defined here
+
+	var validationFunctions = [];
+	caution.isValid = function (text) {
+		// UTF-8 encode before hash
+		var hash = sha256(encodeURI(text).replace(/%../g, function (part) {
+			return String.fromCharCode('0x' + part[1] + part[2] - 0);
+		}));
+		for (var i = 0; i < validationFunctions.length; i++) {
+			var func = validationFunctions[i];
+			if (func(text, hash)) return hash;
+		}
+		return false;
+	};
+	caution.addValid = function (func) {
+		if (typeof func !== 'function') {
+			var hashes = [].concat(func); // array of hashes
+			func = function (text, hash) {
+				for (var i = 0; i < hashes.length; i++) {
+					if (hash.substring(0, hashes[i].length) == hashes[i]) {
+						return true;
+					}
+				}
+				return false;
+			};
+		}
+		validationFunctions.push(func);
+	};
+	caution.addValid(caution.hashes || []);
+	
+	caution.get = function (url, isValid, callback) {
+		if (typeof callback[0] === 'string') throw new Error('!!!');
+		var request = new XMLHttpRequest;
+		isValid = isValid || caution.isValid;
+		if (typeof isValid !== 'function') {
+			var constValue = isValid;
+			isValid = function () {return constValue;};
+		}
+		
+		request.open("GET", url);
+		request.onreadystatechange = function () {
+			if (request.readyState == 4) {
+				var content = request.responseText.replace(/\r/g, ''); // Normalise for consistent behaviour across webserver OS
+				var hash;
+				if (request.status >= 200 && request.status < 300 && (hash = isValid(content))) {
+					callback(null, content, hash);
+				} else {
+					callback(new Error('Content was invalid'));
+				}
+			}
+		};
+		try {
+			request.send();
+		} catch (e) {
+			setTimeout(function () {
+				callback(e);
+			}, 0);
+		}
+	};
+	
+	caution.load = function (name, versions) {
+		if (caution._m[name]) return;
+		caution._m[name] = [];
+		
+		versions = versions ? [].concat(versions) : [];
+		var urls = caution.urls(name, versions);
+		caution.getFirst(urls, null, function (error, js, hash, url) {
+			if (error) {
+				caution.fail(name, versions);
+			} else {
+				define._n = name;
+				caution._m[name] = [url, hash];
+				eval(js);
+				define._n = '';
+			}
+		});
+	};
 	
 	caution.undefine = function () {
 		delete define._m['caution'];
@@ -76,8 +157,20 @@
 			var code = config.paths.map(templateToCode);
 			return 'urls:function(m){return[].concat(' + code.join(',') + ')}';
 		});
+		js = js.replace(/return VERIFICATION\((.*?)\)/, function (block, hashVar) {
+			var hashes = config.hashes || [];
+			var code = hashes.map(function (hash) {
+				hash = hash.toLowerCase().replace(/[^0-9a-f]/g, '');
+				return '/' + hash + '/.test(' + hashVar + ')';
+			}).join('||');
+			if (code) {
+				return 'return' + code;
+			} else {
+				return 'return 0';
+			}
+		});
 		for (var key in config.load) {
-			js += 'caution.load(' + JSON.stringify(key) + ',' + JSON.stringify(config.load[key]) + ');';
+			js += 'caution.init(' + JSON.stringify(key) + ',' + JSON.stringify(config.load[key]) + ');';
 		}
 		
 		customCode = customCode || '';
@@ -111,24 +204,24 @@
 		};
 	};
 	
-	caution.getFirst = function (urls, hashes, callback) {
+	caution.getFirst = function (urls, isValid, callback) {
 		var i = 0;
 		function next(error, text, hash) {
 			if (!error) return callback(null, text, hash, urls[i]);
 			if (i >= urls.length) return callback(error);
 			
-			caution.get(urls[i++], hashes, next);
+			caution.get(urls[i++], isValid, next);
 		}
 		next(new Error('No URLs supplied'));
 	};
 	
-	caution.loadShim = function (name, hashes, returnValue, deps) {
+	caution.loadShim = function (name, returnValue, deps) {
 		var urls = caution.urls(name);
 		caution._m[name] = name;
 		deps = deps || [];
 
-		caution.getFirst(urls, hashes, function (error, js, hash, url) {
-			if (error) return caution.missing(name, hashes);
+		caution.getFirst(urls, null, function (error, js, hash, url) {
+			if (error) return caution.fail(name);
 
 			caution._m[name] = [url, hash];
 			
@@ -151,5 +244,7 @@
 		return result;
 	};
 	
+	// Small improvements
+	
 	define('caution', [], caution);
-})(this || window);
+})((typeof window === 'window' && window) || this);

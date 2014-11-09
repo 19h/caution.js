@@ -33,32 +33,27 @@ var define = function define(name, deps, factory) {
 		}
 	}
 };
-define.amd = {caution: VERSION};
 
 var caution = {
-	_m: {}, // Where modules end up being successfully loaded from
-	fail: function (name, hashes) {
-		alert('Missing safe module: ' + name + '\n' + hashes.join('\n'));
+	_m: {}, // Existing modules, (name -> [url, hash])
+	fail: function (name, versions) {
+		alert('Missing safe module: ' + name + '\n' + versions.join('\n'));
 	},
-	urls: function (moduleName) {
+	urls: function (moduleName, versions) {
 		return [];
 	},
-	get: function (url, hashes, callback) {
+	get: function (url, isValid, callback) {
+		var thisCaution = this;
 		var request = new XMLHttpRequest;
 		request.open("GET", url);
 		request.onreadystatechange = function () {
 			if (request.readyState == 4) {
 				var content = request.responseText.replace(/\r/g, ''); // Normalise for consistent behaviour across webserver OS
-				// UTF-8 encode before hash
-				var hash = sha256(encodeURI(content).replace(/%../g, function (part) {
-					return String.fromCharCode('0x' + part[1] + part[2] - 0);
-				}));
-				for (var i = 0; i < hashes.length; i++) {
-					if (!((request.status/100)^2) && hash.substring(0, hashes[i].length) == hashes[i]) {
-						return callback(null, content, hash);
-					}
+				if (!((request.status/100)^2) && isValid(content)) {
+					return callback(null, content);
+				} else {
+					callback(1);
 				}
-				callback(1);
 			}
 		};
 		try {
@@ -67,19 +62,32 @@ var caution = {
 			callback(e);
 		}
 	},
-	load: function (name, hashes) {
+	init: function (name, versions, hashes) {
+		function isValid(text) {
+			var hash = sha256(encodeURI(text).replace(/%../g, function (part) {
+				return String.fromCharCode('0x' + part[1] + part[2] - 0);
+			}));
+			var expected;
+			while (expected = hashes.pop()) {
+				if (hash.substring(0, expected.length) == expected) return 1;
+			}
+			return 0;
+		}
+		hashes = hashes || versions;
+
 		var thisCaution = this;
-		var urls = thisCaution.urls(name, hashes);
+		var urls = thisCaution.urls(name, versions);
 		var i = 0;
 		var url;
+		
 		if (!thisCaution._m[name]) {
 			thisCaution._m[name] = [];
 			function next(error, js, hash) {
 				if (error) {
 					if (urls.length) {
-						thisCaution.get(url = urls.shift(), hashes, next);
+						thisCaution.get(url = urls.shift(), isValid, next);
 					} else {
-						thisCaution.fail(name, hashes);
+						thisCaution.fail(name, versions);
 					}
 				} else {
 					define._n = name;
@@ -92,3 +100,4 @@ var caution = {
 		}
 	}
 };
+define.amd = {caution: VERSION};
