@@ -9,6 +9,9 @@ var define = function define(name, deps, factory) {
 	}
 	pending.push([name, deps, factory]);
 	
+	// Hook for later, so the caution module can tell when a module is mentioned
+	if (define._d) define._d(deps);
+	
 	// Scan for modules ready to evaluate
 	for (var i = 0; i < pending.length; i++) {
 		var item = pending[i];
@@ -32,14 +35,13 @@ var define = function define(name, deps, factory) {
 };
 
 var caution = {
-	_t: [], // List of URI Templates
 	_m: {}, // Where modules end up being successfully loaded from
 	version: VERSION, // Replaced as part of build
 	missing: function (name, hashes) {
 		alert('Missing safe module: ' + name + '\n' + hashes.join('\n'));
 	},
-	loc: function (t) {
-		this._t.unshift(t);
+	urls: function (moduleName) {
+		return [];
 	},
 	get: function (url, hashes, callback) {
 		var request = new XMLHttpRequest;
@@ -68,18 +70,13 @@ var caution = {
 	},
 	load: function (name, hashes) {
 		var thisCaution = this;
-		var templates = thisCaution._t;
+		var urls = thisCaution.urls(name, hashes);
 		var i = 0;
 		var url;
 		function next(error, js, hash) {
 			if (error) {
-				if (i < templates.length) {
-					url = (typeof templates[i] == 'string') ? templates[i++].replace(/{.*?}/, name) : templates[i++][name];
-					if (url) {
-						thisCaution.get(url, hashes, next);
-					} else {
-						next(error);
-					}
+				if (urls.length) {
+					thisCaution.get(urls.shift(), hashes, next);
 				} else {
 					thisCaution.missing(name, hashes);
 				}

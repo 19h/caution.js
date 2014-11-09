@@ -6,27 +6,24 @@ define([], function () {
 		caution = func();
 	}
 	
-	caution.utf8 = function (content) {
-		return encodeURI(content).replace(/%../g, function (part) {
-			return String.fromCharCode(parseInt(part[1] + part[2], 16));
+	caution.inlineJs = function (config, customCode) {
+		var js = inlineJs;
+		js = js.replace(/urls\:.*?\}/, function (def) {
+			var sequence = config.paths.map(function (entry) {
+				if (typeof entry === 'string') {
+					return '[' + entry.split(/\{.*?\}/g).map(function (part) {
+						return JSON.stringify(part);
+					}).join('+m+') + ']';
+				} else {
+					return JSON.stringify(entry) + '[m]||[]';
+				}
+			});
+			return 'urls:function(m){return[].concat(' + sequence.join(',') + ')}';
 		});
-	};
-	
-	caution.config = function () {
-		var result = {
-			template: this._t.slice(0),
-			init: {}
-		};
-		for (var key in this._i) {
-			result.init[key] = this._i[key].slice(0);
+		for (var key in config.load) {
+			js += 'caution.load(' + JSON.stringify(key) + ',' + JSON.stringify(config.load[key]) + ');';
 		}
-		return result;
-	};
-	
-	caution.dataUrl = function (config, customCode) {
-		config = config || this.config();
-		var js = inlineJs.replace('_t:[]', '_t:' + JSON.stringify(config.template));
-		js += 'caution.init(' + JSON.stringify(config.init) + ');';
+		
 		customCode = customCode || '';
 		if (typeof customCode === 'object') {
 			var vars = [];
@@ -35,8 +32,11 @@ define([], function () {
 			}
 			customCode = 'var ' + vars.join(',') + ';';
 		}
-		js += customCode;
-		var html = '<!DOCTYPE html><html><body><script>' + js + '</script></body></html>';
+		return js + customCode;
+	};
+	
+	caution.dataUrl = function (config, customCode) {
+		var html = '<!DOCTYPE html><html><body><script>' + caution.inlineJs(config, customCode) + '</script></body></html>';
 		
 		if (typeof btoa === 'function') {
 			return 'data:text/html;base64,' + btoa(html);
@@ -55,7 +55,7 @@ define([], function () {
 		});
 	};
 	
-	caution.hashes = function (name) {
+	caution.hash = function (name) {
 		if (name) return (caution._m[name] || [])[1];
 		
 		var result = {};

@@ -1,12 +1,23 @@
 <script src="inline.js"></script>
 <script>
 var baseUrl = location.href.replace(/[^\/]+$/, '');
-caution._t = [{'main-page': baseUrl + 'main-page.js'}, baseUrl + 'modules/{}.js'];
-caution._i = {
-	'caution': [''],
-	'main-page': ['']
+caution.urls = function (moduleName) {
+	return ['modules/' + moduleName + '.js'];
 };
-for (var key in caution._i) {
-	caution.load(key, caution._i[key]);
-}
+caution.load('caution', ['']);
+define(['caution'], function (caution) {
+	var config = {
+		paths: [{'main-page': baseUrl + 'main-page.js'}, baseUrl + 'modules/{}.js'],
+		load: {
+			'caution': [caution.hash('caution')],
+			'main-page': ['']
+		}
+	};
+	
+	var js = caution.inlineJs(config, {baseUrl: baseUrl});
+	console.log(js);
+	var url = caution.dataUrl(config, {baseUrl: baseUrl});
+	console.log(url);
+	console.log('length', url.length);
+});
 </script>
