@@ -51,11 +51,10 @@ var caution = {
 				var content = request.responseText.replace(/\r/g, ''); // Normalise for consistent behaviour across webserver OS
 				// UTF-8 encode before hash
 				var hash = sha256(encodeURI(content).replace(/%../g, function (part) {
-					return String.fromCharCode(parseInt(part[1] + part[2], 16));
+					return String.fromCharCode('0x' + part[1] + part[2] - 0);
 				}));
 				for (var i = 0; i < hashes.length; i++) {
-					var expectedHash = hashes[i];
-					if (!((request.status/100)^2) && hash.substring(0, expectedHash.length) == expectedHash) {
+					if (!((request.status/100)^2) && hash.substring(0, hashes[i].length) == hashes[i]) {
 						return callback(null, content, hash);
 					}
 				}
@@ -76,7 +75,7 @@ var caution = {
 		function next(error, js, hash) {
 			if (error) {
 				if (urls.length) {
-					thisCaution.get(urls.shift(), hashes, next);
+					thisCaution.get(url = urls.shift(), hashes, next);
 				} else {
 					thisCaution.missing(name, hashes);
 				}

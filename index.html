@@ -1,21 +1,31 @@
-<script src="inline.js"></script>
+<!--<script src="inline.js"></script>-->
+<script>
+var VERSION = 'dev', EVAL = eval, FUNCTION = Function;
+</script>
+<script src="src/caution-inline.js"></script>
+<script src="node_modules/tiny-sha256/sha256.js"></script>
 <script>
 var baseUrl = location.href.replace(/[^\/]+$/, '');
 caution.urls = function (moduleName) {
-	return ['modules/' + moduleName + '.js'];
+	return [
+		moduleName + '.js',
+		'modules/' + moduleName + '.js'
+	];
 };
 caution.load('caution', ['']);
-define(['caution'], function (caution) {
+caution.load('main-page', ['']);
+define(['caution', 'main-page'], function (caution) {
 	var config = {
 		paths: [{'main-page': baseUrl + 'main-page.js'}, baseUrl + 'modules/{}.js'],
 		load: {
 			'caution': [caution.hash('caution')],
-			'main-page': ['']
+			'main-page': [caution.hash('main-page')]
 		}
 	};
 	
 	var js = caution.inlineJs(config, {baseUrl: baseUrl});
 	console.log(js);
+
 	var url = caution.dataUrl(config, {baseUrl: baseUrl});
 	console.log(url);
 	console.log('length', url.length);

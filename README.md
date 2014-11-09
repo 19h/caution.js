@@ -2,15 +2,6 @@
 
 This defines a secure JavaScript module loader with an [AMD-compatible API](https://github.com/amdjs/amdjs-api/blob/master/AMD.md).
 
-Possible locations are added using a URI template based on the module name (unquoted):
-
-```javascript
-caution.loc('/modules/{}.js');
-caution.loc({
-	"module-name": ...
-});
-```
-
 Modules are then loaded by supplying a list of acceptable SHA-256 hashes (hex-encoded) of their contents:
 
 ```javascript

@@ -1,4 +1,4 @@
-define([], function () {
+define('caution', [], function () {
 	var inlineJs = INLINE;
 	
 	if (typeof caution !== 'object') {
@@ -6,19 +6,21 @@ define([], function () {
 		caution = func();
 	}
 	
+	function templateToCode(entry) {
+		if (typeof entry === 'string') {
+			return '[' + entry.split(/\{.*?\}/g).map(function (part) {
+				return JSON.stringify(part);
+			}).join('+m+') + ']';
+		} else {
+			return JSON.stringify(entry) + '[m]||[]';
+		}
+	}
+	
 	caution.inlineJs = function (config, customCode) {
 		var js = inlineJs;
 		js = js.replace(/urls\:.*?\}/, function (def) {
-			var sequence = config.paths.map(function (entry) {
-				if (typeof entry === 'string') {
-					return '[' + entry.split(/\{.*?\}/g).map(function (part) {
-						return JSON.stringify(part);
-					}).join('+m+') + ']';
-				} else {
-					return JSON.stringify(entry) + '[m]||[]';
-				}
-			});
-			return 'urls:function(m){return[].concat(' + sequence.join(',') + ')}';
+			var code = config.paths.map(templateToCode);
+			return 'urls:function(m){return[].concat(' + code.join(',') + ')}';
 		});
 		for (var key in config.load) {
 			js += 'caution.load(' + JSON.stringify(key) + ',' + JSON.stringify(config.load[key]) + ');';
@@ -45,18 +47,38 @@ define([], function () {
 		}
 	};
 	
-	caution.hashShim = function (name, url, hashes, returnValue) {
-		caution.get(url, hashes, function (error, js, hash) {
+	caution.addUrls = function (urls) {
+		var func = new Function('m', 'h', 'return [].concat(' + templateToCode(urls) + ')');
+		var oldFunc = caution.urls;
+		caution.urls = function (m, h) {
+			return func(m, h).concat(oldFunc.call(this, m, h));
+		};
+	};
+	
+	caution.getFirst = function (urls, hashes, callback) {
+		var i = 0;
+		function next(error, text, hash) {
+			if (!error) return callback(null, text, hash, urls[i]);
+			if (i >= urls.length) return callback(error);
+			
+			caution.get(urls[i++], hashes, next);
+		}
+		next(new Error('No URLs supplied'));
+	};
+	
+	caution.loadShim = function (name, hashes, returnValue, deps) {
+		var urls = caution.urls(name);
+		caution.getFirst(urls, hashes, function (error, js, hash, url) {
 			if (error) return caution.missing(name, hashes);
 
 			caution._m[name] = [url, hash];
 			
-			define(name, [], new Function(js + '\n;return ' + (returnValue || name)+ ';'));
+			define(name, deps || [], new Function(js + '\n;return ' + (returnValue || name) + ';'));
 		});
 	};
 	
-	caution.hash = function (name) {
-		if (name) return (caution._m[name] || [])[1];
+	caution.hash = function (moduleName) {
+		if (moduleName) return (caution._m[moduleName] || [])[1];
 		
 		var result = {};
 		for (var key in caution._m) {
