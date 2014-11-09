@@ -1,18 +1,21 @@
 (function (global) {
 	var inlineJs = INLINE;
+	
+	var func = new Function(inlineJs + 'return {caution: caution, define: define};');
+	var result = func.call(global);
 
-	// Set up the global "caution" and "define"
-	if (typeof caution !== 'object' || typeof define !== 'function') {
-		var func = new Function(inlineJs + 'return {caution: caution, define: define};');
-		var result = func();
-		
-		global.define = global.define || result.define;
-		global.caution = global.caution || result.caution;
+	// Set up the global "define" if it doesn't already exist
+	if (typeof define !== 'function' || !define.amd.caution) {		
+		define = global.define = result.define;
 	}
+	caution = global.caution = result.caution;
+	
+	caution.undefine = function () {
+		delete define._m['caution'];
+	};
 	
 	var knownModules = {};
 	var missingHandlers = [];
-
 	caution.pending = function (func) {
 		if (!func) {
 			var result = [];
@@ -116,13 +119,20 @@
 	caution.loadShim = function (name, hashes, returnValue, deps) {
 		var urls = caution.urls(name);
 		caution._m[name] = name;
+		deps = deps || [];
 
 		caution.getFirst(urls, hashes, function (error, js, hash, url) {
 			if (error) return caution.missing(name, hashes);
 
 			caution._m[name] = [url, hash];
 			
-			define(name, deps || [], new Function(js + '\n;return ' + (returnValue || name) + ';'));
+			// Hack, in case the code actually uses define()
+			var code = 'define._n = ' + JSON.stringify(name) + ';\n';
+			code += js;
+			code += '\n;define._n = "";\n';
+			code += 'return define._m[' + JSON.stringify(name) + '] || (' + (returnValue || name) + ');';
+			var func = Function.apply(null, deps.concat(code));
+			define(name, deps, func);
 		});
 	};
 	
@@ -135,9 +145,6 @@
 		}
 		return result;
 	};
+	
+	define('caution', [], caution);
 })(this || window);
-
-// Register the global variable as a module
-define('caution', [], function () {
-	return caution;
-});

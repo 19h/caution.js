@@ -1,9 +1,9 @@
 <script>
 var VERSION = 'dev', EVAL = eval, FUNCTION = Function;
 </script>
-<script src="src/caution-inline.js"></script>
-<script src="node_modules/tiny-sha256/sha256.js"></script>
+<script src="modules/caution.js"></script>
 <script>
+caution.undefine(); // removes from module list
 var baseUrl = location.href.replace(/[^\/]+$/, '');
 caution.urls = function (moduleName) {
 	return [

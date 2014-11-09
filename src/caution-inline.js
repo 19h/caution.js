@@ -27,16 +27,16 @@ var define = function define(name, deps, factory) {
 				args[j] = modules[deps[j]];
 			}
 			pending.splice(i, 1);
-			modules[item[0]] = (typeof factory === 'function') ? factory.apply(null, args) : factory;
+			modules[item[0]] = (typeof factory === 'function') ? factory.apply(window, args) : factory;
 			i = -1;
 			continue;
 		}
 	}
 };
+define.amd = {caution: VERSION};
 
 var caution = {
 	_m: {}, // Where modules end up being successfully loaded from
-	version: VERSION, // Replaced as part of build
 	missing: function (name, hashes) {
 		alert('Missing safe module: ' + name + '\n' + hashes.join('\n'));
 	},
