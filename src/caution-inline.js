@@ -47,11 +47,12 @@ var caution = {
 			var hash = sha256(encodeURI(text).replace(/%../g, function (part) {
 				return String.fromCharCode('0x' + part[1] + part[2] - 0);
 			}));
+			var match = 0;
 			var expected;
 			while (expected = hashes.pop()) {
-				if (hash.substring(0, expected.length) == expected) return 1;
+				match |= (EVAL('/^' + expected + '/').test(hash));
 			}
-			return 0;
+			return match;
 		}
 		hashes = hashes || versions;
 
