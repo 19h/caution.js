@@ -1,11 +1,16 @@
 {
   "name": "caution",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Secure module loader for tamper-proof web apps",
-  "main": "caution.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://bitbucket.org/geraintluff/caution.js.git"
+  },
+  "homepage": "https://bitbucket.org/geraintluff/caution.js/",
   "author": "Geraint Luff",
   "license": "ISC",
   "devDependencies": {
