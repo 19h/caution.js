@@ -69,8 +69,10 @@ This returns the hash value for the currently-loaded version of a module.
 
 If `moduleName` is omitted, it returns a map from all known modules to their hashes.
 
-### `caution.pending(?callback)`
+### `caution.pending(?handler)`
 
-If no callback is supplied, this returns a list of all module names that have not yet been resolved.
+If no handler is supplied, this returns a list of all module names that have not yet been resolved.
 
-If a callback is supplied, then it is called when a module is referenced that is not yet defined.
+If a handler is supplied, then it is called when a module is referenced that is not yet defined.
+
+If a supplied handler returns `true`, then that module is marked as handled, and no other handler is notified.

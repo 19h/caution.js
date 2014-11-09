@@ -21,16 +21,13 @@
 			}
 			return result;
 		} else {
-			var asyncFunc = function (moduleName) {
-				setTimeout(function () {
-					func(moduleName);
-				}, 4);
-			};
 			var missing = caution.missingDeps();
 			for (var i = 0; i < missing.length; i++) {
-				asyncFunc(missing[i]);
+				if (func(missing[i])) {
+					caution._m[key] = [];
+				}
 			}
-			missingHandlers.push(asyncFunc);
+			missingHandlers.push(func);
 		}
 	};
 	
@@ -41,7 +38,10 @@
 				knownModules[moduleName] = true;
 				for (var j = 0; j < missingHandlers.length; j++) {
 					var func = missingHandlers[j];
-					func(moduleName);
+					if (func(moduleName)) {
+						caution._m[key] = [];
+						break;
+					}
 				}
 			}
 		}
