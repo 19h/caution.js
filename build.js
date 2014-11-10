@@ -4,6 +4,14 @@ var uglify = require('uglify-js');
 function minify(input, name) {
 	var minified = uglify.minify(input);
 
+	/* Hack for debugging
+	minified = {
+		code: input.map(function (f) {
+			return fs.readFileSync(f, {encoding: 'utf-8'});
+		}).join('\n\n')
+	};
+	//*/
+
 	var code = minified.code;
 	code = code.replace(/\u0080/g, '\\x80').replace(/EVAL/g, 'eval').replace(/FUNCTION/g, 'Function');
 

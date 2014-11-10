@@ -6,7 +6,7 @@ define(['caution'], function (caution) {
 		'marked': 'http://cdnjs.cloudflare.com/ajax/libs/marked/0.3.2/marked.min.js',
 		'Prism': 'http://cdnjs.cloudflare.com/ajax/libs/prism/0.0.1/prism.min.js'		
 	});
-	caution.addValid(['8208dd7d61227d3caeece575cfe01fcd60fce360fa7103abb0dc7f6329217eba', 'e904847187d6817a5f483b70c1d702703dd20d23bac7045968f5c889690d1a08']);
+	caution.addSafe(['8208dd7d61227d3caeece575cfe01fcd60fce360fa7103abb0dc7f6329217eba', 'e904847187d6817a5f483b70c1d702703dd20d23bac7045968f5c889690d1a08']);
 
 	caution.load('marked');
 	caution.loadShim('Prism');

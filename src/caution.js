@@ -1,7 +1,8 @@
 (function (global) {
+	// JS code for the inline seed
 	var inlineJs = INLINE;
 
-	// We execute it (to get sha256), but we don't use caution/define unless we need to
+	// Evaluate the seed (we need sha256() anyway), but we don't replace define() unless we need to
 	var func = new Function(inlineJs + 'return {define: define, sha256: sha256};');
 	var result = func.call(global);
 	
@@ -9,47 +10,45 @@
 	if (typeof define !== 'function' || !define.amd || !define.amd.caution) {		
 		define = global.define = result.define;
 	}
-	var caution = define._c; // Yeah, that's nasty.
+	// Extract the seed (yeah, that's nasty)
+	// We keep existing definitions for _m, urls(), and fail(), but everything else is defined here
+	var caution = define._c; // Yeah, that's a bit bad
 	
 	var sha256 = result.sha256;
-
-	// We preserve the existing definitions for _m, urls, and fail, but everything else is defined here
-
-	var validationFunctions = [];
-	caution.isValid = function (text) {
-		// UTF-8 encode before hash
-		var hash = sha256(encodeURI(text).replace(/%../g, function (part) {
+	function sha256unicode(text) {
+		var encoded = encodeURI(text).replace(/%../g, function (part) {
 			return String.fromCharCode('0x' + part[1] + part[2] - 0);
-		}));
-		for (var i = 0; i < validationFunctions.length; i++) {
-			var func = validationFunctions[i];
-			if (func(text, hash)) return hash;
+		});
+		return sha256(encoded);
+	}
+
+	// Converts a string/object (for URLs) into a JS expression (string or array result)
+	function templateToCode(entry) {
+		if (typeof entry === 'string') {
+			return '[' + entry.split(/\{.*?\}/g).map(function (part) {
+				return JSON.stringify(part);
+			}).join('+m+') + ']';
+		} else {
+			return JSON.stringify(entry) + '[m]||[]';
 		}
-		return false;
-	};
-	caution.addValid = function (func) {
-		if (typeof func !== 'function') {
-			var hashes = [].concat(func); // array of hashes
-			func = function (text, hash) {
+	}
+	
+	/**** Methods ****/
+
+	caution.get = function (url, isSafe, callback) {
+		if (typeof callback[0] === 'string') throw new Error('!!!');
+		var request = new XMLHttpRequest;
+		isSafe = isSafe || caution.isSafe;
+		if (typeof isSafe === 'string' || typeof isSafe === 'object') {
+			var hashes = [].concat(isSafe);
+			isSafe = function (text, hash) {
 				for (var i = 0; i < hashes.length; i++) {
-					if (hash.substring(0, hashes[i].length) == hashes[i]) {
-						return true;
-					}
+					if (hash.substring(0, hashes[i].length) == hashes[i]) return true;
 				}
 				return false;
 			};
-		}
-		validationFunctions.push(func);
-	};
-	caution.addValid(caution.hashes || []);
-	
-	caution.get = function (url, isValid, callback) {
-		if (typeof callback[0] === 'string') throw new Error('!!!');
-		var request = new XMLHttpRequest;
-		isValid = isValid || caution.isValid;
-		if (typeof isValid !== 'function') {
-			var constValue = isValid;
-			isValid = function () {return constValue;};
+		} else if (isSafe === true) {
+			isSafe = function () {return true;};
 		}
 		
 		request.open("GET", url);
@@ -57,7 +56,7 @@
 			if (request.readyState == 4) {
 				var content = request.responseText.replace(/\r/g, ''); // Normalise for consistent behaviour across webserver OS
 				var hash;
-				if (request.status >= 200 && request.status < 300 && (hash = isValid(content))) {
+				if (request.status >= 200 && request.status < 300 && (hash = isSafe(content, sha256unicode(content)))) {
 					callback(null, content, hash);
 				} else {
 					callback(new Error('Content was invalid'));
@@ -73,6 +72,17 @@
 		}
 	};
 	
+	caution.getFirst = function (urls, isSafe, callback) {
+		var i = 0;
+		function next(error, text, hash) {
+			if (!error) return callback(null, text, hash, urls[i]);
+			if (i >= urls.length) return callback(error);
+			
+			caution.get(urls[i++], isSafe, next);
+		}
+		next(new Error('No URLs supplied'));
+	};
+	
 	caution.load = function (name, versions) {
 		if (caution._m[name]) return;
 		caution._m[name] = [];
@@ -85,71 +95,77 @@
 			} else {
 				define._n = name;
 				caution._m[name] = [url, hash];
-				eval(js);
+				Function(js)();
 				define._n = '';
 			}
 		});
 	};
 	
-	caution.undefine = function () {
-		delete define._m['caution'];
+	caution.loadShim = function (name, versions, returnValue, deps) {
+		versions = versions ? [].concat(versions) : [];
+		var urls = caution.urls(name, versions);
+		caution._m[name] = name;
+		deps = deps || [];
+
+		caution.getFirst(urls, null, function (error, js, hash, url) {
+			if (error) return caution.fail(name, versions);
+
+			caution._m[name] = [url, hash];
+			
+			// Hide define(), in case the code tries to call it
+			code = 'var define = undefined;\n';
+			code += js;
+			code += 'return ' + (returnValue || name) + ';';
+			var func = Function.apply(null, deps.concat(code));
+			define(name, deps, func);
+		});
 	};
 	
-	var knownModules = {};
-	var missingHandlers = [];
-	caution.pending = function (func) {
-		if (!func) {
-			var result = [];
-			for (var key in knownModules) {
-				if (!caution._m[key] && !define._m[key]) result.push(key);
-			}
-			return result;
-		} else {
-			var missing = caution.missingDeps();
-			for (var i = 0; i < missing.length; i++) {
-				if (func(missing[i])) {
-					caution._m[key] = [];
+	/* caution.urls() is defined in the inline seed */
+
+	caution.addUrls = function (func) {
+		if (typeof func !== 'function') {
+			// Might as well use the code-generation logic, as it's already defined
+			func = new Function('m', 'h', 'return [].concat(' + templateToCode(func) + ')');
+		}
+		var oldFunc = caution.urls;
+		caution.urls = function (m, h) {
+			return func(m, h).concat(oldFunc.call(this, m, h));
+		};
+	};
+	
+	var validationFunctions = [];
+	caution.isSafe = function (text, hash) {
+		hash = hash || sha256unicode(text);
+		for (var i = 0; i < validationFunctions.length; i++) {
+			var func = validationFunctions[i];
+			if (func(text, hash)) return hash;
+		}
+		return false;
+	};
+	caution.addSafe = function (func) {
+		if (typeof func !== 'function') {
+			var hashes = [].concat(func); // array of hashes
+			func = function (text, hash) {
+				for (var i = 0; i < hashes.length; i++) {
+					if (hash.substring(0, hashes[i].length) == hashes[i]) return true;
 				}
-			}
-			missingHandlers.push(func);
+				return false;
+			};
 		}
+		validationFunctions.push(func);
 	};
+	caution.addSafe(caution.hashes || []);
 	
-	var oldD = global.define._d;
-	global.define._d = function (deps) {
-		var unhandled = [];
-		for (var i = 0; i < deps.length; i++) {
-			var moduleName = deps[i];
-			if (!knownModules[moduleName]) {
-				knownModules[moduleName] = true;
-				var handled = false;
-				for (var j = 0; j < missingHandlers.length; j++) {
-					var func = missingHandlers[j];
-					if (func(moduleName)) {
-						caution._m[key] = [];
-						handled = true;
-						break;
-					}
-				}
-				if (!handled) unhandled.push(moduleName);
-			}
-		}
-		return oldD ? oldD(unhandled) : unhandled;
-	};
-	// Call the callback for any pending dependencies
-	for (var i = 0; i < (global.define._p || []).length; i++) {
-		global.define._d(global.define._p[i][1]);
-	}
-	
-	function templateToCode(entry) {
-		if (typeof entry === 'string') {
-			return '[' + entry.split(/\{.*?\}/g).map(function (part) {
-				return JSON.stringify(part);
-			}).join('+m+') + ']';
+	caution.dataUrl = function (config, customCode) {
+		var html = '<!DOCTYPE html><html><body><script>' + caution.inlineJs(config, customCode) + '</script></body></html>';
+		
+		if (typeof btoa === 'function') {
+			return 'data:text/html;base64,' + btoa(html);
 		} else {
-			return JSON.stringify(entry) + '[m]||[]';
+			return 'data:text/html,' + encodeURI(html);
 		}
-	}
+	};
 	
 	caution.inlineJs = function (config, customCode) {
 		var js = inlineJs;
@@ -184,56 +200,6 @@
 		return js + customCode;
 	};
 	
-	caution.dataUrl = function (config, customCode) {
-		var html = '<!DOCTYPE html><html><body><script>' + caution.inlineJs(config, customCode) + '</script></body></html>';
-		
-		if (typeof btoa === 'function') {
-			return 'data:text/html;base64,' + btoa(html);
-		} else {
-			return 'data:text/html,' + encodeURI(html);
-		}
-	};
-	
-	caution.addUrls = function (func) {
-		if (typeof func !== 'function') {
-			func = new Function('m', 'h', 'return [].concat(' + templateToCode(func) + ')');
-		}
-		var oldFunc = caution.urls;
-		caution.urls = function (m, h) {
-			return func(m, h).concat(oldFunc.call(this, m, h));
-		};
-	};
-	
-	caution.getFirst = function (urls, isValid, callback) {
-		var i = 0;
-		function next(error, text, hash) {
-			if (!error) return callback(null, text, hash, urls[i]);
-			if (i >= urls.length) return callback(error);
-			
-			caution.get(urls[i++], isValid, next);
-		}
-		next(new Error('No URLs supplied'));
-	};
-	
-	caution.loadShim = function (name, returnValue, deps) {
-		var urls = caution.urls(name);
-		caution._m[name] = name;
-		deps = deps || [];
-
-		caution.getFirst(urls, null, function (error, js, hash, url) {
-			if (error) return caution.fail(name);
-
-			caution._m[name] = [url, hash];
-			
-			// Hide define(), in case the code tries to call it
-			code = 'var define = undefined;\n';
-			code += js;
-			code += 'return ' + (returnValue || name) + ';';
-			var func = Function.apply(null, deps.concat(code));
-			define(name, deps, func);
-		});
-	};
-	
 	caution.moduleHash = function (moduleName) {
 		if (moduleName) return (caution._m[moduleName] || [])[1];
 		
@@ -243,8 +209,61 @@
 		}
 		return result;
 	};
-	
-	// Small improvements
+
+	var knownModules = {};
+	var missingHandlers = [];
+	caution.pending = function (func) {
+		if (!func) {
+			var result = [];
+			for (var key in knownModules) {
+				if (!caution._m[key] && !define._m[key]) result.push(key);
+			}
+			return result;
+		} else {
+			var missing = caution.missingDeps();
+			for (var i = 0; i < missing.length; i++) {
+				if (func(missing[i])) {
+					// Mark as handled
+					caution._m[key] = caution._m[key] || true;
+				}
+			}
+			missingHandlers.push(func);
+		}
+	};
+	// Hacky hook into define() from the seed, so we get told about every dependency
+	var oldD = global.define._d;
+	global.define._d = function (deps) {
+		var unhandled = [];
+		for (var i = 0; i < deps.length; i++) {
+			var moduleName = deps[i];
+			if (!knownModules[moduleName]) {
+				knownModules[moduleName] = true;
+				var handled = false;
+				// Call the handlers in sequence
+				for (var j = 0; j < missingHandlers.length; j++) {
+					var func = missingHandlers[j];
+					if (func(moduleName)) {
+						caution._m[key] = [];
+						handled = true;
+						break;
+					}
+				}
+				if (!handled) unhandled.push(moduleName);
+			}
+		}
+		return oldD ? oldD(unhandled) : unhandled;
+	};
+	// Loop through existing pending entries
+	var pending = global.define._p || [];
+	for (var i = 0; i < pending.length; i++) {
+		global.define._d(pending[i][1]);
+	}
+
+	// There are very few sane reasons to use this
+	caution.undefine = function () {
+		delete caution._m['caution'];
+		delete define._m['caution'];
+	};
 	
 	define('caution', [], caution);
 })((typeof window === 'window' && window) || this);

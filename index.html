@@ -10,7 +10,7 @@ define(['caution'], function (caution) {
 			'modules/' + moduleName + '.js'
 		];
 	};
-	caution.addValid(function () {
+	caution.addSafe(function (text, hash) {
 		return true; // No verification
 	});
 

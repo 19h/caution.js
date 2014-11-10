@@ -22,29 +22,29 @@ Hash values are SHA-256 hashes, written as hexadecimal.  When comparing hashes, 
 
 This is a basic text-only method to fetch resources.  If one of the hashes matches, then the content is returned (without error) - otherwise, a truthy value is returned as the error.
 
-`validation ` must be one of:
-
-* a SHA-256 hash
-* an array of SHA-256 hashes
-* a function returning `true` if valid: `function (text, hash, httpStatusCode) {...}`
-
-The `hash` argument in the callback is the hash of the content
+`validation` can be anything suitable for use with `caution.addSafe()`, or `null` (defaults to `caution.isSafe()` or `true` (always succeeds).
 
 **Warning:** this method (used by `caution.load()` and others) normalises newlines to `\n` (Unix) before calculating the hash.
 
-### `caution.load(moduleName, hashes)`
+### `caution.getFirst(urls, validation, function (error, text, hash, url) {...})`
 
-This loads a module, checking against a list of acceptable hash values.
+Similar to `caution.get()`, except it tries a series of URLs in sequence.  The successful URL is returned to the callback.
 
-### `caution.loadShim(moduleName, hashes, ?returnValue, ?dependencies)`
+### `caution.load(moduleName, version)`
+
+Loads a module, checking against a list of acceptable hash values.
+
+### `caution.loadShim(moduleName, versions, ?returnValue, ?dependencies)`
 
 For modules that don't support AMD syntax, this wraps them in a `define()` call.
 
-The optional `returnValue` argument specifies JavaScript code to return at the end - this defaults to `moduleName`.
+The optional `returnValue` argument specifies JavaScript code to return at the end (considered to be the result of loading the module).  This defaults to the value of `moduleName`.
 
-### `caution.getFirst(urls, hashes, function (error, text, hash, url) {...})`
+### `caution.urls(moduleName, versions)`
 
-This method is similar to `caution.get()`, except it tries a series of URLs in sequence.  The successful URL is returned to the callback.
+Returns a list of possible modules.
+
+`versions` is a list of module versions.  It may be empty, or contain hashes, semver identifiers (e.g. `v1.0.3`) or anything else.  These values have no effect on whether the result is considered valid or not - they are just useful for possible places to look.
 
 ### `caution.addUrls(urls)`
 
@@ -52,7 +52,21 @@ This adds a place to look for modules.  `urls` must be one of:
 
 * a URI template (string), where `{}` is replaced by the module name (e.g. `/modules/{}.js`)
 * a map (object) from module names to URLs (string or list)
-* a function returning a list of possible URLs, given two arguments: the module name and a list of allowed hashes
+* a function returning a list of possible URLs, given two arguments (same as `caution.urls()`)
+
+### `caution.isSafe(text, ?hash)`
+
+Returns whether the given text is considered "safe" or not.  If `hash` is not supplied, it is calculated from `text`.
+
+The return value is the hash of the content.
+
+### `caution.addSafe(validation)`
+
+Adds a new set of conditions for safe content.  `validation` may be:
+
+* a hash (string)
+* an array of hashes
+* a function returning a truthy if valid: `function (text, hash, httpStatusCode) {...}`
 
 ### `caution.dataUrl(config, ?customCode)`
 
@@ -75,7 +89,7 @@ Like `caution.dataUrl()`, except it returns just the inline JS instead of a `dat
 
 ### `caution.moduleHash(?moduleName)`
 
-This returns the hash value for the currently-loaded version of a module.
+This returns the hash value for the currently-loaded version of a given module.
 
 If `moduleName` is omitted, it returns a map from all known modules to their hashes.
 
