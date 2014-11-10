@@ -239,7 +239,7 @@
 	};
 	
 	function scanDependencies(deps) {
-		var pending = global.define._p;
+		var pending = global.define._p || [];
 		for(var j = 0; j < pending.length; j++) {
 			deps = pending[j][1];
 			for (var i = 0; i < deps.length; i++) {
@@ -264,7 +264,7 @@
 	global.define._d = function () {
 		var pending = global.define._p || [];
 		var triplet = pending[pending.length - 1];
-		var name = triplet[0], deps = triplet[1];
+		var name = triplet[0];
 	
 		knownModules[name] = true;
 		caution._m[name] = caution._m[name] || [];
