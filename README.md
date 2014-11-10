@@ -2,23 +2,37 @@
 
 This defines a secure JavaScript module loader with an [AMD-compatible API](https://github.com/amdjs/amdjs-api/blob/master/AMD.md).  It sets up a `define()` function, as well as the `caution` module.
 
-Loaded scripts are checked against a list of SHA-256 hashes (or  other validity criteria you define).  The `caution` module can also generate HTML-page `data:` URLs for creating secure-boot web-apps, containing `define()` and a set of SHA-256 hashes for the initial scripts.
+Loaded scripts are checked against a list of safe SHA-256 hashes (or other validity criteria you define).  The `caution` module can also generate HTML-page `data:` URLs (or JavaScript code) for secure-boot web-apps, containing `define()` and a set of SHA-256 hashes for the initial scripts.
 
-The `define()` function and `caution` module don't include automatic fetching, as unless you explicitly load a module it has no way to identify a secure version.  However, using `caution.missingModules()` and `caution.addSafe()` you can define automatic-fetching logic with custom security criteria (e.g. public-key signatures).
+Automatic module-fetching can be added using `caution.missingModules()`, `caution.load()` and `caution.addSafe()` - see "Automatic module fetching" below.
 
-## `define()`
+## The `define()` function
 
 The `define()` function follows the [Asynchronous Module Definition](https://github.com/amdjs/amdjs-api/blob/master/AMD.md) spec.
 
 The value of `define.amd` is `{caution: VERSION}`, where VERSION is the version of the `caution` module used to generate it.
 
-## Caution API
+## The `caution` API
 
-This is the API for the `caution` module.
+```javascript
+define(['caution'], function (caution) {
+	...
+});
+```
 
 Hash values are SHA-256 hashes, written as hexadecimal.  When comparing hashes, they are prefix-matched (so they can be truncated, and `""` will match anything).
 
 **Warning:** fetched resources have newlines normalised to `\n` (Unix) before calculating the hash.
+
+### `caution.load(moduleName, version)`
+
+Loads a module, checking `caution.isSafe(moduleSource)` before executing.
+
+### `caution.loadShim(moduleName, versions, ?returnValue, ?dependencies)`
+
+For modules that don't support AMD syntax, this wraps them in a `define()` call.
+
+The optional `returnValue` argument specifies JavaScript code to return at the end (considered to be the result of loading the module).  This defaults to the value of `moduleName`.
 
 ### `caution.get(url, validation, function (error, text, hash) {...})`
 
@@ -30,19 +44,9 @@ This is a basic text-only method to fetch resources.  If the fetched version is 
 
 Similar to `caution.get()`, except it tries a series of URLs in sequence.  The successful URL is returned to the callback.
 
-### `caution.load(moduleName, version)`
-
-Loads a module, checking against a list of acceptable hash values.
-
-### `caution.loadShim(moduleName, versions, ?returnValue, ?dependencies)`
-
-For modules that don't support AMD syntax, this wraps them in a `define()` call.
-
-The optional `returnValue` argument specifies JavaScript code to return at the end (considered to be the result of loading the module).  This defaults to the value of `moduleName`.
-
 ### `caution.urls(moduleName, versions)`
 
-Returns a list of possible modules.
+Returns a list of possible URLs for a given module.
 
 `versions` is a list of module versions.  It may be empty, or contain hashes, semver identifiers (e.g. `v1.0.3`) or anything else.  These values have no effect on whether the result is considered valid or not - they are just useful for possible places to look.
 
@@ -95,8 +99,49 @@ If `moduleName` is omitted, it returns a map from all known modules to their has
 
 ### `caution.missingModules(?handler)`
 
-If no handler is supplied, this returns a list of all module names that have not yet been resolved.
+If no handler is supplied, this returns a list of all module names that have not yet been resolved.  If a `handler` function is supplied, then it is called when a module is referenced that is not yet defined (including once for all existing missing modules).
 
-If a handler is supplied, then it is called when a module is referenced that is not yet defined.
+If a handler returns `true` (or calls `caution.load()` for that module), then that module is marked as handled, and no other handler is notified.
 
-If a supplied handler returns `true`, then that module is marked as handled, and no other handler is notified.
+## Automatic module fetching
+
+On its own, `caution` doesn't attempt automatic fetching - you have to explicitly load every module you want to use:
+
+```javascript
+define(['caution'], function (caution) {
+	// Minified version of marked@0.3.2
+	caution.addSafe('8208dd7d61227d3caeece575cfe01fcd60fce360fa7103abb0dc7f6329217eba');
+	caution.load('marked', ['0.3.2']); // Hint the version so we can look it up on CDNs
+});
+```
+
+However, if you have some way to verify the security (e.g. public-key, or a big list), adding automatic fetching is simple:
+
+```javascript
+define(['caution'], function (caution) {
+	caution.addSafe(function (text, hash) {
+		// Check it against a big list of safe hashes
+		return (hash in giantHashLookup);
+	});
+
+	caution.missingModules(function (moduleName) {
+		caution.load(moduleName);
+	});
+});
+```
+
+If you have fancy rules for where to search for modules, just add them with `caution.addUrls()`:
+
+```javascript
+define(['caution'], function (caution) {
+	caution.addUrls(function (moduleName, versions) {
+		if (/^some-prefix\//.test(moduleName)) {
+			return [...];
+		} else {
+			return versions.map(function (version) {
+				return 'http://my-app/js/' + moduleName + '@' + version + '.js';
+			});
+		}
+	});
+});
+```

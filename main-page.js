@@ -32,7 +32,7 @@ define(['caution', 'marked', 'Prism'], function (caution, marked, Prism) {
 		var html = '<a id="bitbucket" href="https://bitbucket.org/geraintluff/caution.js">view on BitBucket</a>';
 		html += marked(text, {gfm: true, sanitize: true});
 		contentDiv.innerHTML = html
-		Prism.highlightElement(contentDiv);
+		Prism.highlightAll();
 	});
 });
 

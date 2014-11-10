@@ -227,14 +227,16 @@
 			}
 			return result;
 		} else {
-			var missing = caution.missingModules();
-			for (var i = 0; i < missing.length; i++) {
-				if (func(missing[i])) {
-					// Mark as handled
-					caution._m[key] = caution._m[key] || true;
+			asap(function () {
+				var missing = caution.missingModules();
+				for (var i = 0; i < missing.length; i++) {
+					if (func(missing[i])) {
+						// Mark as handled
+						caution._m[key] = caution._m[key] || true;
+					}
 				}
-			}
-			missingHandlers.push(func);
+				missingHandlers.push(func);
+			});
 		}
 	};
 	
@@ -248,6 +250,7 @@
 					knownModules[moduleName] = true;
 					// Call the handlers in sequence
 					for (var j = 0; j < missingHandlers.length; j++) {
+						if (caution._m[key] || define._m[key]) break;
 						var func = missingHandlers[j];
 						if (func(moduleName)) {
 							// Mark it as handled
