@@ -63,10 +63,11 @@ define._c = {
 					request.open("GET", url);
 					request.onreadystatechange = function () {
 						if (request.readyState > 3) {
+							var statusNotOK = ((request.status/100)^2);
 							var content = request.responseText.replace(/\r/g, ''); // Normalise for consistent behaviour across webserver OS
 
 							// Check validity against supplied hashes
-							var hash = sha256(encodeURI(content).replace(/%../g, function (part) {
+							var hash = statusNotOK || sha256(encodeURI(content).replace(/%../g, function (part) {
 								return String.fromCharCode('0x' + part[1] + part[2] - 0);
 							}));
 							var match = 0;
@@ -75,7 +76,7 @@ define._c = {
 								match |= (EVAL('/^' + expected + '/').test(hash));
 							}
 							
-							if (!((request.status/100)^2) && match) {
+							if (!statusNotOK && match) {
 								// It maches - load it!
 								define._n = name;
 								thisCaution._m[name] = [url, hash];
