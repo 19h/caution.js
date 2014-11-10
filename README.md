@@ -1,8 +1,8 @@
-# caution.js - a secure AMD loader
+# caution.js - a secure AMD implementation
 
 This defines a secure JavaScript module loader with an [AMD-compatible API](https://github.com/amdjs/amdjs-api/blob/master/AMD.md).  It sets up a `define()` function, as well as the `caution` module.
 
-Loaded scripts are checked against a list of safe SHA-256 hashes (or other validity criteria you define).  The `caution` module can also generate HTML-page `data:` URLs (or JavaScript code) for secure-boot web-apps, containing `define()` and a set of SHA-256 hashes for the initial scripts.
+Loaded scripts are checked against a list of safe SHA-256 hashes (or other validity criteria you define).  The `caution` module can also generate JavaScript code (or HTML-page `data:` URLs) for secure-boot web-apps, containing `define()` and a set of SHA-256 hashes for the initial scripts.
 
 Automatic module-fetching can be added using `caution.missingModules()`, `caution.load()` and `caution.addSafe()` - see "Automatic module fetching" below.
 
