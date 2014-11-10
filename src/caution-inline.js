@@ -32,7 +32,6 @@ var define = function define(name, deps, factory) {
 			pending.splice(i, 1);
 			modules[item[0]] = (typeof factory === 'function') ? factory.apply(window, args) : factory;
 			i = -1;
-			continue;
 		}
 	}
 };
