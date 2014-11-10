@@ -13,7 +13,8 @@ var define = function define(name, deps, factory) {
 	pending.push([name, deps, factory]);
 	
 	// Hook for later, so the caution module gets notified of all define() calls
-	if (define._d) define._d(deps);
+	// This has to be after pending.push(), so caution can inspect everything
+	if (define._d) define._d();
 	
 	// Scan for modules ready to evaluate
 	for (var i = 0; i < pending.length; i++) {
@@ -29,7 +30,7 @@ var define = function define(name, deps, factory) {
 				args[j] = modules[deps[j]];
 			}
 			pending.splice(i, 1);
-			modules[item[0]] = (typeof factory === 'function') ? factory.apply(window, args) : factory;
+			item = modules[item[0]] = (typeof factory === 'function') ? factory.apply(window, args) : factory;
 			i = -1;
 		}
 	}

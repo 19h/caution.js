@@ -10,8 +10,7 @@
 	if (typeof define !== 'function' || !define.amd || !define.amd.caution) {		
 		define = global.define = result.define;
 	}
-	// Extract the seed (yeah, that's nasty)
-	// We keep existing definitions for _m, urls(), and fail(), but everything else is defined here
+	// Extract the seed - we keep existing definitions for _m, urls(), and fail(), but everything else is defined here
 	var caution = define._c; // Yeah, that's a bit bad
 	
 	var sha256 = result.sha256;
@@ -22,13 +21,11 @@
 		return sha256(encoded);
 	}
 	
-	function async(func) {
-		return function () {
-			var args = arguments;
-			setTimeout(function () {
-				func.apply(this, args);
-			}, 4);
-		};
+	function asap(func) {
+		var args = Array.prototype.slice.call(arguments, 1);
+		setTimeout(function () {
+			func.apply(this, args);
+		}, 4);
 	}
 
 	// Converts a string/object (for URLs) into a JS expression (string or array result)
@@ -75,7 +72,7 @@
 		try {
 			request.send();
 		} catch (e) {
-			async(callback)(e);
+			asap(callback, e);
 		}
 	};
 	
@@ -216,18 +213,21 @@
 		}
 		return result;
 	};
-
+	
+	/**** hack for missing dependencies ****/
+	
 	var knownModules = {};
 	var missingHandlers = [];
-	caution.pending = function (func) {
+	caution.missingModules = function (func) {
 		if (!func) {
 			var result = [];
 			for (var key in knownModules) {
+				// Known but not yet handled
 				if (!caution._m[key] && !define._m[key]) result.push(key);
 			}
 			return result;
 		} else {
-			var missing = caution.missingDeps();
+			var missing = caution.missingModules();
 			for (var i = 0; i < missing.length; i++) {
 				if (func(missing[i])) {
 					// Mark as handled
@@ -237,34 +237,49 @@
 			missingHandlers.push(func);
 		}
 	};
-	// Hacky hook into define() from the seed, so we get told about every dependency
-	var oldD = global.define._d; // Nothing else should be hooking into this, but might as well be polite
-	global.define._d = async(function (deps) {
-		var unhandled = [];
-		for (var i = 0; i < deps.length; i++) {
-			var moduleName = deps[i];
-			if (!knownModules[moduleName]) {
-				knownModules[moduleName] = true;
-				var handled = false;
-				// Call the handlers in sequence
-				for (var j = 0; j < missingHandlers.length; j++) {
-					var func = missingHandlers[j];
-					if (func(moduleName)) {
-						caution._m[key] = [];
-						handled = true;
-						break;
+	
+	function scanDependencies(deps) {
+		var pending = global.define._p;
+		for(var j = 0; j < pending.length; j++) {
+			deps = pending[j][1];
+			for (var i = 0; i < deps.length; i++) {
+				var moduleName = deps[i];
+				if (!knownModules[moduleName]) {
+					knownModules[moduleName] = true;
+					// Call the handlers in sequence
+					for (var j = 0; j < missingHandlers.length; j++) {
+						var func = missingHandlers[j];
+						if (func(moduleName)) {
+							// Mark it as handled
+							caution._m[moduleName] = caution._m[moduleName] || [];
+							break;
+						}
 					}
 				}
-				if (!handled) unhandled.push(moduleName);
 			}
 		}
-		return oldD ? oldD(unhandled) : unhandled;
-	});
-	// Loop through existing pending entries
-	var pending = global.define._p || [];
-	for (var i = 0; i < pending.length; i++) {
-		global.define._d(pending[i][1]);
 	}
+	
+	// Hacky hook into define() so we get told about every dependency
+	global.define._d = function () {
+		var pending = global.define._p || [];
+		var triplet = pending[pending.length - 1];
+		var name = triplet[0], deps = triplet[1];
+	
+		knownModules[name] = true;
+		caution._m[name] = caution._m[name] || [];
+		scanDependencies();
+	};
+	// We already know about currently-defined and pending modules
+	var pending = global.define._p || [];
+	for (var moduleName in global.define._m) {
+		knownModules[moduleName] = true;
+	}
+	for (var i = 0; i < pending.length; i++) {
+		knownModules[pending[i][0]] = true;
+	}
+	// Loop through pending entries to find missing dependencies
+	scanDependencies();
 
 	// There are very few sane reasons to use this
 	caution.undefine = function () {
@@ -273,4 +288,5 @@
 	};
 	
 	define('caution', [], caution);
+	//define('events', [], {EventEmitter: EventEmitter});
 })((typeof window === 'window' && window) || this);

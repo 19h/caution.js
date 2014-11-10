@@ -93,7 +93,7 @@ This returns the hash value for the currently-loaded version of a given module.
 
 If `moduleName` is omitted, it returns a map from all known modules to their hashes.
 
-### `caution.pending(?handler)`
+### `caution.missingModules(?handler)`
 
 If no handler is supplied, this returns a list of all module names that have not yet been resolved.
 

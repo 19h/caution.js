@@ -29,6 +29,6 @@ var minified = minify([__dirname + '/node_modules/tiny-sha256/sha256.js', __dirn
 minified = minified.replace('VERSION', JSON.stringify(version));
 fs.writeFileSync('inline.js', minified);
 
-var main = fs.readFileSync(__dirname + '/src/caution.js', {encoding: 'utf-8'});
+var main = fs.readFileSync(__dirname + '/src/caution-main.js', {encoding: 'utf-8'});
 main = main.replace('INLINE', JSON.stringify(minified));
 fs.writeFileSync('modules/caution.js', main);

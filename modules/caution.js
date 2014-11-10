@@ -1,6 +1,6 @@
 (function (global) {
 	// JS code for the inline seed
-	var inlineJs = "var sha256=function n(e){function r(n,e){return n>>>e|n<<32-e}for(var t,o,f=Math.pow,i=f(2,32),a=\"length\",c=\"\",s=[],u=8*e[a],h=n.h=n.h||[],l=n.k=n.k||[],d=l[a],p={},_=2;64>d;_++)if(!p[_]){for(t=0;313>t;t+=_)p[t]=_;h[d]=f(_,.5)*i|0,l[d++]=f(_,1/3)*i|0}for(e+=\"\\x80\";e[a]%64-56;)e+=\"\\x00\";for(t=0;t<e[a];t++){if(o=e.charCodeAt(t),o>>8)return;s[t>>2]|=o<<(3-t)%4*8}for(s[s[a]]=u/i|0,s[s[a]]=u,o=0;o<s[a];){var v=s.slice(o,o+=16),g=h;for(h=h.slice(0,8),t=0;64>t;t++){var m=v[t-15],y=v[t-2],w=h[0],C=h[4],M=h[7]+(r(C,6)^r(C,11)^r(C,25))+(C&h[5]^~C&h[6])+l[t]+(v[t]=16>t?v[t]:v[t-16]+(r(m,7)^r(m,18)^m>>>3)+v[t-7]+(r(y,17)^r(y,19)^y>>>10)|0),S=(r(w,2)^r(w,13)^r(w,22))+(w&h[1]^w&h[2]^h[1]&h[2]);h=[M+S|0].concat(h),h[4]=h[4]+M|0}for(t=0;8>t;t++)h[t]=h[t]+g[t]|0}for(t=0;8>t;t++)for(o=3;o+1;o--){var x=h[t]>>8*o&255;c+=(16>x?0:\"\")+x.toString(16)}return c},define=function e(n,r,t){var o=e._p=e._p||[],f=e._m=e._m||{};t||(t=r||n,r=r&&n||[],n=e._n||Math.random()),o.push([n,r,t]),e._d&&e._d(r);for(var i=0;i<o.length;i++){for(var a=o[i],r=a[1],c=0;c<r.length;)a=r[c++]in f&&a;if(a){for(var t=a[2],s=[],c=0;c<r.length;c++)s[c]=f[r[c]];o.splice(i,1),f[a[0]]=\"function\"==typeof t?t.apply(window,s):t,i=-1}}};define.amd={caution:\"0.4.0\"},define._c={_m:{},fail:function(n,e){alert(\"Missing safe module: \"+n+\"\\n\"+e.join(\"\\n\"))},urls:function(){return[]},_init:function(n,e,r){function t(i){if(f.length){var a=new XMLHttpRequest,c=f.shift();a.open(\"GET\",c),a.onreadystatechange=function(){if(a.readyState>3){for(var e,f=a.responseText.replace(/\\r/g,\"\"),i=sha256(encodeURI(f).replace(/%../g,function(n){return String.fromCharCode(\"0x\"+n[1]+n[2]-0)})),s=0;e=r.pop();)s|=eval(\"/^\"+e+\"/\").test(i);a.status/100^2||!s?t(1):(define._n=n,o._m[n]=[c,i],Function(f)(),define._n=\"\")}};try{a.send()}catch(s){t(s)}}else o.fail(n,e,i)}var o=this,f=o.urls(n,e);r=r||e,o._m[n]||(o._m[n]=[],t())}};";
+	var inlineJs = "var sha256=function n(e){function r(n,e){return n>>>e|n<<32-e}for(var t,o,f=Math.pow,i=f(2,32),a=\"length\",c=\"\",s=[],u=8*e[a],h=n.h=n.h||[],l=n.k=n.k||[],d=l[a],p={},_=2;64>d;_++)if(!p[_]){for(t=0;313>t;t+=_)p[t]=_;h[d]=f(_,.5)*i|0,l[d++]=f(_,1/3)*i|0}for(e+=\"\\x80\";e[a]%64-56;)e+=\"\\x00\";for(t=0;t<e[a];t++){if(o=e.charCodeAt(t),o>>8)return;s[t>>2]|=o<<(3-t)%4*8}for(s[s[a]]=u/i|0,s[s[a]]=u,o=0;o<s[a];){var v=s.slice(o,o+=16),g=h;for(h=h.slice(0,8),t=0;64>t;t++){var m=v[t-15],y=v[t-2],w=h[0],C=h[4],M=h[7]+(r(C,6)^r(C,11)^r(C,25))+(C&h[5]^~C&h[6])+l[t]+(v[t]=16>t?v[t]:v[t-16]+(r(m,7)^r(m,18)^m>>>3)+v[t-7]+(r(y,17)^r(y,19)^y>>>10)|0),S=(r(w,2)^r(w,13)^r(w,22))+(w&h[1]^w&h[2]^h[1]&h[2]);h=[M+S|0].concat(h),h[4]=h[4]+M|0}for(t=0;8>t;t++)h[t]=h[t]+g[t]|0}for(t=0;8>t;t++)for(o=3;o+1;o--){var x=h[t]>>8*o&255;c+=(16>x?0:\"\")+x.toString(16)}return c},define=function e(n,r,t){var o=e._p=e._p||[],f=e._m=e._m||{};t||(t=r||n,r=r&&n||[],n=e._n||Math.random()),o.push([n,r,t]),e._d&&e._d();for(var i=0;i<o.length;i++){for(var a=o[i],r=a[1],c=0;c<r.length;)a=r[c++]in f&&a;if(a){for(var t=a[2],s=[],c=0;c<r.length;c++)s[c]=f[r[c]];o.splice(i,1),a=f[a[0]]=\"function\"==typeof t?t.apply(window,s):t,i=-1}}};define.amd={caution:\"0.4.0\"},define._c={_m:{},fail:function(n,e){alert(\"Missing safe module: \"+n+\"\\n\"+e.join(\"\\n\"))},urls:function(){return[]},_init:function(n,e,r){function t(i){if(f.length){var a=new XMLHttpRequest,c=f.shift();a.open(\"GET\",c),a.onreadystatechange=function(){if(a.readyState>3){for(var e,f=a.responseText.replace(/\\r/g,\"\"),i=sha256(encodeURI(f).replace(/%../g,function(n){return String.fromCharCode(\"0x\"+n[1]+n[2]-0)})),s=0;e=r.pop();)s|=eval(\"/^\"+e+\"/\").test(i);a.status/100^2||!s?t(1):(define._n=n,o._m[n]=[c,i],Function(f)(),define._n=\"\")}};try{a.send()}catch(s){t(s)}}else o.fail(n,e,i)}var o=this,f=o.urls(n,e);r=r||e,o._m[n]||(o._m[n]=[],t())}};";
 
 	// Evaluate the seed (we need sha256() anyway), but we don't replace define() unless we need to
 	var func = new Function(inlineJs + 'return {define: define, sha256: sha256};');
@@ -10,8 +10,7 @@
 	if (typeof define !== 'function' || !define.amd || !define.amd.caution) {		
 		define = global.define = result.define;
 	}
-	// Extract the seed (yeah, that's nasty)
-	// We keep existing definitions for _m, urls(), and fail(), but everything else is defined here
+	// Extract the seed - we keep existing definitions for _m, urls(), and fail(), but everything else is defined here
 	var caution = define._c; // Yeah, that's a bit bad
 	
 	var sha256 = result.sha256;
@@ -22,13 +21,11 @@
 		return sha256(encoded);
 	}
 	
-	function async(func) {
-		return function () {
-			var args = arguments;
-			setTimeout(function () {
-				func.apply(this, args);
-			}, 4);
-		};
+	function asap(func) {
+		var args = Array.prototype.slice.call(arguments, 1);
+		setTimeout(function () {
+			func.apply(this, args);
+		}, 4);
 	}
 
 	// Converts a string/object (for URLs) into a JS expression (string or array result)
@@ -75,7 +72,7 @@
 		try {
 			request.send();
 		} catch (e) {
-			async(callback)(e);
+			asap(callback, e);
 		}
 	};
 	
@@ -216,18 +213,21 @@
 		}
 		return result;
 	};
-
+	
+	/**** hack for missing dependencies ****/
+	
 	var knownModules = {};
 	var missingHandlers = [];
-	caution.pending = function (func) {
+	caution.missingModules = function (func) {
 		if (!func) {
 			var result = [];
 			for (var key in knownModules) {
+				// Known but not yet handled
 				if (!caution._m[key] && !define._m[key]) result.push(key);
 			}
 			return result;
 		} else {
-			var missing = caution.missingDeps();
+			var missing = caution.missingModules();
 			for (var i = 0; i < missing.length; i++) {
 				if (func(missing[i])) {
 					// Mark as handled
@@ -237,34 +237,49 @@
 			missingHandlers.push(func);
 		}
 	};
-	// Hacky hook into define() from the seed, so we get told about every dependency
-	var oldD = global.define._d; // Nothing else should be hooking into this, but might as well be polite
-	global.define._d = async(function (deps) {
-		var unhandled = [];
-		for (var i = 0; i < deps.length; i++) {
-			var moduleName = deps[i];
-			if (!knownModules[moduleName]) {
-				knownModules[moduleName] = true;
-				var handled = false;
-				// Call the handlers in sequence
-				for (var j = 0; j < missingHandlers.length; j++) {
-					var func = missingHandlers[j];
-					if (func(moduleName)) {
-						caution._m[key] = [];
-						handled = true;
-						break;
+	
+	function scanDependencies(deps) {
+		var pending = global.define._p;
+		for(var j = 0; j < pending.length; j++) {
+			deps = pending[j][1];
+			for (var i = 0; i < deps.length; i++) {
+				var moduleName = deps[i];
+				if (!knownModules[moduleName]) {
+					knownModules[moduleName] = true;
+					// Call the handlers in sequence
+					for (var j = 0; j < missingHandlers.length; j++) {
+						var func = missingHandlers[j];
+						if (func(moduleName)) {
+							// Mark it as handled
+							caution._m[moduleName] = caution._m[moduleName] || [];
+							break;
+						}
 					}
 				}
-				if (!handled) unhandled.push(moduleName);
 			}
 		}
-		return oldD ? oldD(unhandled) : unhandled;
-	});
-	// Loop through existing pending entries
-	var pending = global.define._p || [];
-	for (var i = 0; i < pending.length; i++) {
-		global.define._d(pending[i][1]);
 	}
+	
+	// Hacky hook into define() so we get told about every dependency
+	global.define._d = function () {
+		var pending = global.define._p || [];
+		var triplet = pending[pending.length - 1];
+		var name = triplet[0], deps = triplet[1];
+	
+		knownModules[name] = true;
+		caution._m[name] = caution._m[name] || [];
+		scanDependencies();
+	};
+	// We already know about currently-defined and pending modules
+	var pending = global.define._p || [];
+	for (var moduleName in global.define._m) {
+		knownModules[moduleName] = true;
+	}
+	for (var i = 0; i < pending.length; i++) {
+		knownModules[pending[i][0]] = true;
+	}
+	// Loop through pending entries to find missing dependencies
+	scanDependencies();
 
 	// There are very few sane reasons to use this
 	caution.undefine = function () {
@@ -273,4 +288,5 @@
 	};
 	
 	define('caution', [], caution);
+	//define('events', [], {EventEmitter: EventEmitter});
 })((typeof window === 'window' && window) || this);
