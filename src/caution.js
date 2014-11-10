@@ -21,6 +21,15 @@
 		});
 		return sha256(encoded);
 	}
+	
+	function async(func) {
+		return function () {
+			var args = arguments;
+			setTimeout(function () {
+				func.apply(this, args);
+			}, 4);
+		};
+	}
 
 	// Converts a string/object (for URLs) into a JS expression (string or array result)
 	function templateToCode(entry) {
@@ -66,9 +75,7 @@
 		try {
 			request.send();
 		} catch (e) {
-			setTimeout(function () {
-				callback(e);
-			}, 0);
+			async(callback)(e);
 		}
 	};
 	
@@ -231,8 +238,8 @@
 		}
 	};
 	// Hacky hook into define() from the seed, so we get told about every dependency
-	var oldD = global.define._d;
-	global.define._d = function (deps) {
+	var oldD = global.define._d; // Nothing else should be hooking into this, but might as well be polite
+	global.define._d = async(function (deps) {
 		var unhandled = [];
 		for (var i = 0; i < deps.length; i++) {
 			var moduleName = deps[i];
@@ -252,7 +259,7 @@
 			}
 		}
 		return oldD ? oldD(unhandled) : unhandled;
-	};
+	});
 	// Loop through existing pending entries
 	var pending = global.define._p || [];
 	for (var i = 0; i < pending.length; i++) {

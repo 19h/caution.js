@@ -38,7 +38,7 @@ define.amd = {caution: VERSION};
 
 // This is the inline seed of the caution module - _m, fail() and urls() are kept on for continuity
 define._c = {
-	_m: {}, // Existing modules, (name -> [url, hash])
+	_m: {}, // Existing modules, (name -> [url, hash]) - pending modules should have truthy values
 	fail: function (name, versions, error) {
 		alert('Missing safe module: ' + name + '\n' + versions.join('\n'));
 	},
