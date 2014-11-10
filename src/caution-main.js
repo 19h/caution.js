@@ -173,7 +173,7 @@
 	
 	caution.inlineJs = function (config, customCode) {
 		var js = inlineJs;
-		js = js.replace(/urls\:.*?\}/, function (def) {
+		js = js.replace(/urls\:[^\}]*?\}/, function (def) {
 			var code = config.paths.map(templateToCode);
 			return 'urls:function(m){return[].concat(' + code.join(',') + ')}';
 		});
@@ -190,7 +190,7 @@
 			}
 		});
 		for (var key in config.load) {
-			js += 'define._c._init(' + JSON.stringify(key) + ',' + JSON.stringify(config.load[key]) + ');';
+			js += 'define._c._init(' + JSON.stringify(key) + ',' + JSON.stringify([].concat(config.load[key])) + ');';
 		}
 		
 		customCode = customCode || '';
@@ -280,12 +280,6 @@
 	}
 	// Loop through pending entries to find missing dependencies
 	scanDependencies();
-
-	// There are very few sane reasons to use this
-	caution.undefine = function () {
-		delete caution._m['caution'];
-		delete define._m['caution'];
-	};
 	
 	define('caution', [], caution);
 	//define('events', [], {EventEmitter: EventEmitter});
