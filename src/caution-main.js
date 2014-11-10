@@ -235,7 +235,7 @@
 						caution._m[key] = caution._m[key] || true;
 					}
 				}
-				missingHandlers.push(func);
+				missingHandlers.unshift(func);
 			});
 		}
 	};

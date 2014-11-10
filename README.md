@@ -1,4 +1,4 @@
-# caution.js
+# caution.js - a secure AMD loader
 
 This defines a secure JavaScript module loader with an [AMD-compatible API](https://github.com/amdjs/amdjs-api/blob/master/AMD.md).  It sets up a `define()` function, as well as the `caution` module.
 
