@@ -80,7 +80,7 @@ define._c = {
 								// It maches - load it!
 								define._n = name;
 								thisCaution._m[name] = [url, hash];
-								new FUNCTION(content)();
+								FUNCTION(content)();
 								define._n = '';
 							} else {
 								next(1);
