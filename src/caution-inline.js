@@ -61,7 +61,7 @@ define._c = {
 					var url = urls.shift();
 					request.open("GET", url);
 					request.onreadystatechange = function () {
-						if (request.readyState == 4) {
+						if (request.readyState > 3) {
 							var content = request.responseText.replace(/\r/g, ''); // Normalise for consistent behaviour across webserver OS
 
 							// Check validity against supplied hashes
