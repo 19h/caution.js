@@ -24,11 +24,11 @@ Hash values are SHA-256 hashes, written as hexadecimal.  When comparing hashes, 
 
 **Warning:** fetched resources have newlines normalised to `\n` (Unix) before calculating the hash.
 
-### `caution.load(moduleName, version)`
+### `caution.load(moduleName, ?versions)`
 
 Loads a module, checking `caution.isSafe(moduleSource)` before executing.
 
-### `caution.loadShim(moduleName, versions, ?returnValue, ?dependencies)`
+### `caution.loadShim(moduleName, ?versions, ?returnValue, ?dependencies)`
 
 For modules that don't support AMD syntax, this wraps them in a `define()` call.
 
