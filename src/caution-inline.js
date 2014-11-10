@@ -12,16 +12,15 @@ var define = function define(name, deps, factory) {
 	}
 	pending.push([name, deps, factory]);
 	
-	// Hook for later, so the caution module can tell when a module is mentioned
+	// Hook for later, so the caution module gets notified of all define() calls
 	if (define._d) define._d(deps);
 	
 	// Scan for modules ready to evaluate
 	for (var i = 0; i < pending.length; i++) {
 		var item = pending[i];
 		var deps = item[1];
-		var j = 0;
-		for (var j = 0; j < deps.length; j++) {
-			item = (deps[j] in modules) && item;
+		for (var j = 0; j < deps.length;) {
+			item = (deps[j++] in modules) && item;
 		}
 		if (item) { // Ready to evaluate
 			var factory = item[2];
@@ -37,7 +36,7 @@ var define = function define(name, deps, factory) {
 };
 define.amd = {caution: VERSION};
 
-// This is the seed of the caution module - _m, fail() and urls() are kept on for continuity
+// This is the inline seed of the caution module - _m, fail() and urls() are kept on for continuity
 define._c = {
 	_m: {}, // Existing modules, (name -> [url, hash])
 	fail: function (name, versions, error) {
