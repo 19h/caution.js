@@ -2,13 +2,13 @@
 
 This defines a secure JavaScript module loader with an [AMD-compatible API](https://github.com/amdjs/amdjs-api/blob/master/AMD.md).  It sets up a `define()` function, as well as the `caution` module.
 
-Loaded scripts are checked against a list of valid SHA-256 hashes.  The `caution` module can also generate HTML-page `data:` URLs for creating secure-boot web-apps, containing the `define()` and enough logic to verify loaded modules using SHA-256.
+Loaded scripts are checked against a list of SHA-256 hashes (or  other validity criteria you define).  The `caution` module can also generate HTML-page `data:` URLs for creating secure-boot web-apps, containing `define()` and a set of SHA-256 hashes for the initial scripts.
+
+The `define()` function and `caution` module don't include automatic fetching, as unless you explicitly load a module it has no way to identify a secure version.  However, using `caution.missingModules()` and `caution.addSafe()` you can define automatic-fetching logic with custom security criteria (e.g. public-key signatures).
 
 ## `define()`
 
 The `define()` function follows the [Asynchronous Module Definition](https://github.com/amdjs/amdjs-api/blob/master/AMD.md) spec.
-
-However, it performs **no automatic fetching** due to the security model of the module loader.  The `caution` module provides hooks (see `caution.pending()`), so you can write your own automatic-fetching logic as a separate module.
 
 The value of `define.amd` is `{caution: VERSION}`, where VERSION is the version of the `caution` module used to generate it.
 
@@ -18,13 +18,13 @@ This is the API for the `caution` module.
 
 Hash values are SHA-256 hashes, written as hexadecimal.  When comparing hashes, they are prefix-matched (so they can be truncated, and `""` will match anything).
 
+**Warning:** fetched resources have newlines normalised to `\n` (Unix) before calculating the hash.
+
 ### `caution.get(url, validation, function (error, text, hash) {...})`
 
-This is a basic text-only method to fetch resources.  If one of the hashes matches, then the content is returned (without error) - otherwise, a truthy value is returned as the error.
+This is a basic text-only method to fetch resources.  If the fetched version is safe, then the content is returned (without error) - otherwise, a truthy value is returned as the error.
 
-`validation` can be anything suitable for use with `caution.addSafe()`, or `null` (defaults to `caution.isSafe()` or `true` (always succeeds).
-
-**Warning:** this method (used by `caution.load()` and others) normalises newlines to `\n` (Unix) before calculating the hash.
+`validation` can be anything you might for use with `caution.addSafe()`, or `null` (defaults to `caution.isSafe()`) or `true` (always succeeds).
 
 ### `caution.getFirst(urls, validation, function (error, text, hash, url) {...})`
 
