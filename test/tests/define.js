@@ -7,12 +7,11 @@ describe('Test environment', function () {
 		assert.equal(contextVar, 12345);
 		contextVar = 67890;
 		assert.equal(contextVar, 67890);
-		console.log('contextVar 1', contextVar);
 	});
 
 	var contextVar = 12345;
 	
-	it('runs tests in separate environments', function () {
+	it('runs each test in a separate environment', function () {
 		assert.equal(contextVar, 12345);
 	});
 });

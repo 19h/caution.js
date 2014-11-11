@@ -1,7 +1,6 @@
 define([], function () {
 	function runnerToDom(runner, targetDiv, options) {
 		
-		
 		runner.suites.forEach(function (suite) {
 			// Add suite header
 			var suiteDiv = document.createElement('div');
