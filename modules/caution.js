@@ -180,7 +180,7 @@
 				funcs[i] = new Function('m', 'h', 'return [].concat(' + templateToCode(funcs[i]) + ')');
 			}
 		}
-		funcs.push(caution.urls); // Old function
+		funcs.unshift(caution.urls); // Old function
 		caution.urls = function (m, h) {
 			var result = [];
 			for (var i = 0; i < funcs.length; i++) {

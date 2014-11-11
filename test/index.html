@@ -43,6 +43,7 @@
 
 		var runner = new TestRunner();
 		
+		window.chai = chai;
 		window.assert = chai.assert;
 		
 		caution.get('test-list.json', true, function (error, listJson) {

@@ -17,7 +17,7 @@ define('test-runner', ['caution', 'events'], function (caution, events) {
 			var error = null;
 			var globalErrorHandler = function (event) {
 				// Assume all errors while we are running are our fault
-				error = error || event.error;
+				error = error || event.error || new Error('Event not available (might occur in cross-origin script): ' + event.message);
 				event.preventDefault();
 				setTimeout(done, 0);
 				return true;
