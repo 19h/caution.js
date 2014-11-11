@@ -1,6 +1,10 @@
 define('events', [], function () {
+	var api = {};
+	
 	// Quick'n'dirty EventEmitter class
 	function EventEmitter() {
+		// This space intentionally left blank
+		// 	- all the logic is in the methods, which allows us to stick those methods on anything and have them work
 	}
 	EventEmitter.prototype = {
 		on: function (event, listener) {
@@ -69,12 +73,14 @@ define('events', [], function () {
 	EventEmitter.listenerCount = function (emitter, event) {
 		return (emitter._events[event] || []).length;
 	};
-	EventEmitter.addMethods = function (obj) {
+	
+	api.EventEmitter = EventEmitter;
+	api.eventify = function (obj) {
 		for (var key in EventEmitter.prototype) {
 			obj[key] = EventEmitter.prototype[key];
 		}
 		return obj;
 	};
 	
-	return {EventEmitter: EventEmitter};
+	return api;
 });

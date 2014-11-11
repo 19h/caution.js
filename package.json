@@ -24,8 +24,6 @@
   "license": "ISC",
   "devDependencies": {
     "uglify-js": "~2.4.15",
-    "tiny-sha256": "~1.0.2",
-    "grunt": "~0.4.5",
-    "grunt-contrib-uglify": "~0.6.0"
+    "tiny-sha256": "~1.0.2"
   }
 }

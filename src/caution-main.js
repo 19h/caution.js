@@ -62,10 +62,12 @@
 			if (request.readyState == 4) {
 				var content = request.responseText.replace(/\r/g, ''); // Normalise for consistent behaviour across webserver OS
 				var hash;
-				if (request.status >= 200 && request.status < 300 && (hash = isSafe(content, sha256unicode(content)))) {
+				if (request.status < 200 || request.status >= 300) {
+					callback(new Error('Response code not OK: ' + request.status));
+				} else if (hash = isSafe(content, sha256unicode(content))) {
 					callback(null, content, hash);
 				} else {
-					callback(new Error('Content was invalid'));
+					callback(new Error('Content was not safe'));
 				}
 			}
 		};
@@ -78,14 +80,39 @@
 	
 	caution.getFirst = function (urls, isSafe, callback) {
 		var i = 0;
+		var errors = [];
+		var url;
 		function next(error, text, hash) {
-			if (!error) return callback(null, text, hash, urls[i]);
-			if (i >= urls.length) return callback(error);
-			
-			caution.get(urls[i++], isSafe, next);
+			if (!error) return callback(null, text, hash, url);
+
+			errors.push(error);
+			if (i >= urls.length) {
+				var error = new Error('Error fetching: ' + url);
+				error.errors = errors.slice(1);
+				return callback(error);
+			}
+			url = urls[i++];
+			caution.get(url, isSafe, next);
 		}
 		next(new Error('No URLs supplied'));
 	};
+	
+	var pendingDebugLoads = [];
+	function runNextDebugLoad() {
+		if (pendingDebugLoads.length) {
+			var func = pendingDebugLoads[0];
+			func(function () {
+				pendingDebugLoads.shift();
+				runNextDebugLoad();
+			});
+		}
+	}
+	function addDebugLoad(func) {
+		pendingDebugLoads.push(func);
+		if (pendingDebugLoads.length === 1) {
+			func(runNextDebugLoad);
+		}
+	}
 	
 	caution.load = function (name, versions) {
 		if (caution._m[name]) return;
@@ -97,10 +124,28 @@
 			if (error) {
 				caution.fail(name, versions);
 			} else {
-				define._n = name;
-				caution._m[name] = [url, hash];
-				Function(js)();
-				define._n = '';
+				if (caution.DEBUG) {
+					// Loading via <script> is not secure (the server could return a different version second time), but it allows inspection
+					console.log('caution.load() success: ', name, versions);
+					addDebugLoad(function (callback) {
+						define._n = name;
+						var script = document.createElement('script');
+						script.src = url;
+						script.onload = function () {
+							// We're about to execute
+							setTimeout(function () {
+								define._n = '';
+								callback();
+							}, 10);
+						};
+						document.head.appendChild(script);
+					});
+				} else {
+					define._n = name;
+					caution._m[name] = [url, hash];
+					Function(js)();
+					define._n = '';
+				}
 			}
 		});
 	};
@@ -127,14 +172,22 @@
 	
 	/* caution.urls() is defined in the inline seed */
 
-	caution.addUrls = function (func) {
-		if (typeof func !== 'function') {
-			// Might as well use the code-generation logic, as it's already defined
-			func = new Function('m', 'h', 'return [].concat(' + templateToCode(func) + ')');
+	caution.addUrls = function (funcs) {
+		funcs = [].concat(funcs);
+		for (var i = 0; i < funcs.length; i++) {
+			if (typeof funcs[i] !== 'function') {
+				// Might as well use the code-generation logic, as it's already defined
+				funcs[i] = new Function('m', 'h', 'return [].concat(' + templateToCode(funcs[i]) + ')');
+			}
 		}
-		var oldFunc = caution.urls;
+		funcs.push(caution.urls); // Old function
 		caution.urls = function (m, h) {
-			return func(m, h).concat(oldFunc.call(this, m, h));
+			var result = [];
+			for (var i = 0; i < funcs.length; i++) {
+				var func = funcs[i];
+				result = result.concat(func(m, h));
+			}
+			return result;
 		};
 	};
 	
@@ -250,7 +303,7 @@
 					knownModules[moduleName] = true;
 					// Call the handlers in sequence
 					for (var j = 0; j < missingHandlers.length; j++) {
-						if (caution._m[key] || define._m[key]) break;
+						if (caution._m[moduleName] || define._m[moduleName]) break;
 						var func = missingHandlers[j];
 						if (func(moduleName)) {
 							// Mark it as handled
@@ -285,5 +338,4 @@
 	scanDependencies();
 	
 	define('caution', [], caution);
-	//define('events', [], {EventEmitter: EventEmitter});
-})((typeof window === 'window' && window) || this);
+})(this || window);

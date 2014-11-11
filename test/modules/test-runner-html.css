@@ -1,0 +1,120 @@
+/** Suites **/
+
+.test-suite {
+	position: relative;
+	display: block;
+
+	padding: 5px;
+	margin: 5px 0px;
+	
+	border: 1px solid #BBB;
+	border-radius: 5px;
+	background-color: #FFF;
+	color: #888;
+
+	font-family: "Trebuchet MS", sans-serif;
+}
+
+.test-suite.passed {
+	background-color: #E8F8E8;
+}
+
+.test-suite-name {
+	display: block;
+	width: auto;
+	
+	margin-bottom: 5px;
+	padding-bottom: 4px;
+	padding-left: 5px;
+
+	border-bottom: 1px solid #EEE;
+
+	color: #444;
+	letter-spacing: 1px;
+}
+
+.test-suite.passed .test-suite-name {
+	border-color: #DED;
+}
+
+.test-suite.running {
+	border-color: #666;
+	box-shadow: 0px 0px 0px 4px rgba(0, 0, 0, 0.1);
+}
+
+/** Tests **/
+
+.test {
+	clear: both;
+	margin: 1px;
+	margin-left: 40px;
+	
+	padding: 0.3em 0.7em;
+	border-radius: 5px;
+	
+	font-size: 0.8em;
+}
+
+.test.running {
+	background-color: #EEE;
+}
+
+.test.failed {
+	background-color: rgba(192, 0, 0, 0.1);
+	color: #222;
+}
+
+.test.passed {
+}
+
+.test.slow {
+	background-color: rgba(255, 128, 0, 0.1);
+	color: #222;
+}
+
+/** Test components **/
+
+.test-name {
+	left: 0.5em;
+	top: 0.3em;
+}
+
+.test.waiting .test-name {
+	color: #BBB;
+}
+
+.test-duration {
+	margin-left: 1em;
+	font-style: italic;
+	color: #BBB;
+}
+
+.test.slow .test-duration {
+	color: #B44;
+}
+
+.test-result {
+	float: right;
+	color: #444;
+}
+
+.test.waiting .test-result {
+	color: #DDD;
+}
+
+.test.failed .test-result {
+	color: #D00;
+}
+
+.test.passed .test-result{
+	color: #0B0;
+}
+
+.test-error {
+	color: #A77;
+}
+
+.test-error pre {
+	margin: 0;
+	margin-top: 0.5em;
+}

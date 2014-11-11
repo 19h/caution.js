@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" href="modules/test-runner-html.css"/>
+</head>
+<body>
+	<script>var VERSION = 'dev'</script>
+	<script src="../src/caution-inline.js"></script>
+	<script src="../modules/caution.js"></script>
+	</script src="tests.js"></script>
+	<script>
+	define(['caution'], function (caution) {
+		caution.DEBUG = true;
+		caution.addSafe(function () {
+			// Accept everything
+			return true;
+		});
+		caution.addUrls(['../modules/{}.js', 'modules/{}.js']);
+		caution.addUrls(function (module, versions) {
+			return versions.map(function (version) {
+				return 'http://cdnjs.cloudflare.com/ajax/libs/' + module + '/' + version + '/' + module + '.js'
+			});
+		});
+		caution.missingModules(function (moduleName) {
+			caution.load(moduleName);
+		});
+		
+		caution.load('chai', ['1.10.0']);
+	});
+	
+	/*
+	define(['chai'], function (chai) {
+		assert = chai.assert;
+	});
+	*/
+	
+	define(['caution', 'chai', 'test-runner', 'test-runner-html'], function (caution, chai, TestRunner, domUI) {
+		document.title = "Caution.js tests";
+		
+		var targetDiv = document.createElement('div');
+		targetDiv.className = 'test-set';
+		document.body.appendChild(targetDiv);
+
+		var runner = new TestRunner();
+		
+		window.assert = chai.assert;
+		
+		caution.get('test-list.json', true, function (error, listJson) {
+			if (error) throw error;
+			var list = JSON.parse(listJson);
+
+			runner.load(list, function (error) {
+				if (error) throw error;
+			
+				domUI(runner, targetDiv);
+
+				runner.run(function (report) {
+					console.log('Finished tests:', report);
+				});
+			});
+		});
+	});
+	</script>
+</body>
+</html>
