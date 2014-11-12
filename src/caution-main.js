@@ -122,7 +122,9 @@
 		var urls = caution.urls(name, versions);
 		caution.getFirst(urls, null, function (error, js, hash, url) {
 			if (error) {
-				caution.fail(name, versions);
+				if (!define._m[name]) {
+					caution.fail(name, versions);
+				}
 			} else {
 				if (caution.DEBUG) {
 					// Loading via <script> is not secure (the server could return a different version second time), but it allows inspection
@@ -324,7 +326,7 @@
 	
 		knownModules[name] = true;
 		caution._m[name] = caution._m[name] || [];
-		scanDependencies();
+		asap(scanDependencies);
 	};
 	// We already know about currently-defined and pending modules
 	var pending = global.define._p || [];

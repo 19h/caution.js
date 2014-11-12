@@ -46,7 +46,7 @@ function walkDirectory(dir, prefix, filterFunction) {
 			if (isDir) {
 				result = result.concat(walkDirectory(entry, prefix, filterFunction));
 			} else {
-				result.push(entry);
+				result.push(entry.replace(/\\/g, '/'));
 			}
 		}
 	})
