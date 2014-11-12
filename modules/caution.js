@@ -173,14 +173,6 @@
 		caution._m[name] = [];
 
 		versions = versions ? [].concat(versions) : [];
-<<<<<<< HEAD
-		var urls = caution.urls(name, versions);
-		caution.getFirst(urls, null, function (error, js, hash, url) {
-			if (error) {
-				if (!define._m[name]) {
-					caution.fail(name, versions);
-				}
-=======
 
 		var options = noCache ? [] : cacheLoadFunctions.slice(0);
 		function next() {
@@ -194,7 +186,6 @@
 						next();
 					}
 				});
->>>>>>> master
 			} else {
 				// Fetch via AJAX
 				var urls = caution.urls(name, versions);
