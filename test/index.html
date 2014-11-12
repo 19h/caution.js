@@ -63,15 +63,16 @@
 		if (chosen) return;
 		chosen = true;
 		console.log('acting as parent');
-		
-		var iframe = document.createElement('iframe');
-		iframe.style.display = 'none';
-		document.body.appendChild(iframe);
 
 		function executeTestInChild(test, suiteNumber, testNumber, callback) {
 			test.emit('start');
 
-			// (Re)load iFrame
+			// Load iFrame, place off-screen and assign to this page
+			var iframe = document.createElement('iframe');
+			iframe.style.position = 'absolute';
+			iframe.style.height = '100px';
+			iframe.style.top = '-1000px';
+			document.body.appendChild(iframe);
 			iframe.src = location.href;
 
 			var handler = function (event) {
@@ -84,7 +85,7 @@
 				} else if (event.source === iframe.contentWindow && event.data && event.data.report) {
 					// Teardown
 					window.removeEventListener('message', handler);
-					//if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+					if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
 
 					// Extract relevant report
 					var fullReport = event.data.report;

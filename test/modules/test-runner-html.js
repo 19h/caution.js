@@ -29,10 +29,12 @@ define([], function () {
 				testName.className = 'test-name';
 				testName.appendChild(document.createTextNode(test.name));
 				testDiv.appendChild(testName);
+				testDiv.appendChild(document.createTextNode(' '));
 
 				var testTime = document.createElement('span');
 				testTime.className = 'test-duration';
 				testDiv.appendChild(testTime);
+				testDiv.appendChild(document.createTextNode(' '));
 
 				var testResult = document.createElement('span');
 				testResult.className = 'test-result';
