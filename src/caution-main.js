@@ -114,40 +114,97 @@
 		}
 	}
 	
-	caution.load = function (name, versions) {
-		if (caution._m[name]) return;
-		caution._m[name] = [];
-		
-		versions = versions ? [].concat(versions) : [];
-		var urls = caution.urls(name, versions);
-		caution.getFirst(urls, null, function (error, js, hash, url) {
-			if (error) {
-				caution.fail(name, versions);
+	function loadModuleJs(name, js, hash, url) {
+		if (url && caution.DEBUG) {
+			// Loading via <script> is not secure (the server could return a different version second time), but it allows inspection
+			console.log('caution.load() success: ', name);
+			addDebugLoad(function (callback) {
+				define._n = name;
+				var script = document.createElement('script');
+				script.src = url;
+				script.onload = function () {
+					// We're about to execute
+					setTimeout(function () {
+						define._n = '';
+						callback();
+					}, 10);
+				};
+				document.head.appendChild(script);
+			});
+		} else {
+			define._n = name;
+			caution._m[name] = [url, hash];
+			Function(js)();
+			define._n = '';
+		}
+	}
+	
+	var cacheSaveFunctions = [], cacheLoadFunctions = [];
+	caution.addCache = function (saveFunction, loadFunction) {
+		if (saveFunction) cacheSaveFunctions.push(saveFunction);
+		if (loadFunction) cacheLoadFunctions.push(loadFunction);
+	};
+	
+	/*
+	// Try using localStorage;
+	var ls;
+	try {
+		ls = localStorage;
+	} catch (e) {
+		// Do nothing
+		console.log('localStorage not available');
+	}
+	if (ls) {
+		caution.addCache(function (name, js) {
+			ls['cautionModule:' + name] = js;
+		}, function (name, versions, callback) {
+			var js = ls['cautionModule:' + name];
+			if (typeof js === 'string') {
+				callback(null, js);
 			} else {
-				if (caution.DEBUG) {
-					// Loading via <script> is not secure (the server could return a different version second time), but it allows inspection
-					console.log('caution.load() success: ', name, versions);
-					addDebugLoad(function (callback) {
-						define._n = name;
-						var script = document.createElement('script');
-						script.src = url;
-						script.onload = function () {
-							// We're about to execute
-							setTimeout(function () {
-								define._n = '';
-								callback();
-							}, 10);
-						};
-						document.head.appendChild(script);
-					});
-				} else {
-					define._n = name;
-					caution._m[name] = [url, hash];
-					Function(js)();
-					define._n = '';
-				}
+				callback(true);
 			}
 		});
+	}
+	*/
+	
+	caution.load = function (name, versions, noCache) {
+		if (caution._m[name]) return;
+		caution._m[name] = [];
+
+		versions = versions ? [].concat(versions) : [];
+
+		var options = noCache ? [] : cacheLoadFunctions.slice(0);
+		function next() {
+			if (options.length) {
+				// Try alternative fetching functions first
+				var func = options.shift();
+				func(name, versions, function (error, js, hash) {
+					if (!error && (hash = caution.isSafe(js, hash))) {
+						loadModuleJs(name, js, hash, null);
+					} else {
+						next();
+					}
+				});
+			} else {
+				// Fetch via AJAX
+				var urls = caution.urls(name, versions);
+				caution.getFirst(urls, null, function (error, js, hash, url) {
+					if (error) {
+						if (!define._m[name]) {
+							caution.fail(name, versions);
+						}
+					} else {
+						for (var i = 0; i < cacheSaveFunctions.length; i++) {
+							var func = cacheSaveFunctions[i];
+							func(name, js, hash, url);
+						}
+						loadModuleJs(name, js, hash, url);
+					}
+				});
+			}
+		}
+		next();
 	};
 	
 	caution.loadShim = function (name, versions, returnValue, deps) {
