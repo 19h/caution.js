@@ -7,6 +7,14 @@ define('test-runner', ['caution', 'events'], function (caution, events) {
 	}
 	
 	function Test(name, func, suite) {
+		if (func.length === 0) {
+			var syncFunc = func;
+			func = function (done) {
+				syncFunc();
+				done();
+			};
+		}
+	
 		this.name = name;
 		this.func = func;
 		this.suite = suite;
@@ -23,9 +31,11 @@ define('test-runner', ['caution', 'events'], function (caution, events) {
 				return true;
 			};
 			addEvent(window, 'error', globalErrorHandler);
+			this.emit('start');
 			var startTime = Date.now();
 			var done = function (err) {
 				var durationMs = Date.now() - startTime;
+				clearTimeout(doneTimeout);
 				removeEvent(window, 'error', globalErrorHandler);
 				error = error || err;
 				if (error) {
@@ -41,20 +51,13 @@ define('test-runner', ['caution', 'events'], function (caution, events) {
 					error: error
 				});
 			}
-			this.emit('start');
-			setTimeout(function () {
+			var doneTimeout = setTimeout(function () {
 				done(new Error('Timeout'));
 			}, 2000);
 			
-			var func = this.func;
-			if (func.length > 0) {
-				func(function () {
-					done();
-				});
-			} else {
-				func();
+			this.func(function () {
 				done();
-			}
+			});
 		}
 	};
 	events.eventify(Test.prototype);
@@ -71,15 +74,24 @@ define('test-runner', ['caution', 'events'], function (caution, events) {
 			}
 			this.tests.push(new Test(name, func));
 		},
-		run: function (callback) {
+		run: function (runFunction, callback) {
 			var thisSuite = this;
+			if (!callback) {
+				callback = runFunction;
+				runFunction = function (test, index, callback) {
+					test.run(callback);
+				};
+			}
+			
 			var tests = this.tests.slice(0);
 			var testReports = [];
 			function next() {
 				if (!tests.length) {
 					var passCount = 0, failCount = 0;
 					testReports.forEach(function (report) {
-						if (report.error) {
+						if (!report) {
+							// Do nothing
+						} else if (report.error) {
 							failCount++;
 						} else {
 							passCount++;
@@ -99,9 +111,14 @@ define('test-runner', ['caution', 'events'], function (caution, events) {
 					thisSuite.emit('end');
 					return callback(report);
 				}
+				
+				// Run the tests
 				var test = tests.shift();
+				
 				thisSuite.emit('beforetest', test);
-				test.run(function (report) {
+				
+				var testIndex = testReports.length;
+				runFunction(test, testIndex, function (report) {
 					testReports.push(report);
 					thisSuite.emit('aftertest', test);
 					setTimeout(next, 0);
@@ -160,8 +177,15 @@ define('test-runner', ['caution', 'events'], function (caution, events) {
 				throw new Error('Cannot use it() outside of describe()');
 			}
 		},
-		run: function (callback) {
+		run: function (runFunction, callback) {
 			var thisRunner = this;
+			if (!callback) {
+				callback = filterFunction;
+				runFunction = function (test, suiteNumber, testNumber, callback) {
+					test.run(callback);
+				};
+			}
+			
 			var suites = this.suites.slice(0);
 			var suiteReports = [];
 			function next() {
@@ -171,10 +195,13 @@ define('test-runner', ['caution', 'events'], function (caution, events) {
 				}
 				var suite = suites.shift();
 				thisRunner.emit('beforesuite', suite);
-				suite.run(function (report) {
+				var suiteIndex = suiteReports.length;
+				suite.run(function (test, testIndex, callback) {
+					runFunction(test, suiteIndex, testIndex, callback);
+				}, function (report) {
 					thisRunner.emit('aftersuite', suite);
 					suiteReports.push(report);
-					setTimeout(next, 0);
+					next();
 				});
 			}
 			setTimeout(function () {
@@ -184,10 +211,6 @@ define('test-runner', ['caution', 'events'], function (caution, events) {
 		}
 	};
 	events.eventify(TestRunner.prototype);
-	
-	addEvent(window, 'message', function (message) {
-		console.log('message', message);
-	});
 	
 	return TestRunner;
 });

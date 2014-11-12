@@ -11,6 +11,9 @@
 	<script>
 	define(['caution'], function (caution) {
 		caution.DEBUG = true;
+		caution.fail = function (moduleName, versions) {
+			throw new Error('Missing safe ' + moduleName + '\n' + versions.join('\n'));
+		};
 		caution.addSafe(function () {
 			// Accept everything
 			return true;
@@ -27,34 +30,31 @@
 		
 		caution.load('chai', ['1.10.0']);
 	});
+
+	function loadTests(runner, callback) {
+		define(['caution'], function (caution) {
+			caution.get('test-list.json', true, function (error, listJson) {
+				if (error) return callback(error);
+				var list = JSON.parse(listJson);
+
+				runner.load(list, function (error) {
+					if (error) return callback(error);
+					callback(null, runner);
+				});
+			});
+		});
+	}
 	
-	function runTests() {
-		define(['caution', 'chai', 'test-runner', 'test-runner-html'], function (caution, chai, TestRunner, domUI) {
+	function loadUI(runner, callback) {
+		define(['test-runner-html'], function (domUI) {
 			document.title = "Caution.js tests";
 		
 			var targetDiv = document.createElement('div');
 			targetDiv.className = 'test-set';
 			document.body.appendChild(targetDiv);
 
-			var runner = new TestRunner();
-		
-			window.chai = chai;
-			window.assert = chai.assert;
-		
-			caution.get('test-list.json', true, function (error, listJson) {
-				if (error) throw error;
-				var list = JSON.parse(listJson);
-
-				runner.load(list, function (error) {
-					if (error) throw error;
-			
-					domUI(runner, targetDiv);
-
-					runner.run(function (report) {
-						console.log('Finished tests:', report);
-					});
-				});
-			});
+			domUI(runner, targetDiv);
+			callback(null, targetDiv);
 		});
 	}
 	
@@ -62,31 +62,84 @@
 	function actAsParent() {
 		if (chosen) return;
 		chosen = true;
-
-		var iframe = document.createElement('iframe');
-		iframe.width = '100%';
-		iframe.height = '100%';
-		iframe.src = location.href;
-		iframe.style.opacity = 0.5;
-		document.body.appendChild(iframe);
 		console.log('acting as parent');
+		
+		var iframe = document.createElement('iframe');
+		iframe.style.display = 'none';
+		document.body.appendChild(iframe);
 
-		var handler = function (event) {
-			window.loadedMessage = event;
-			if (event.source === iframe.contentWindow && event.data === 'loaded') {
-				console.log('child loaded');
-				iframe.contentWindow.postMessage({
-					actAsChild: {suite: 0, test: 0}
-				}, '*');
-			}
-		};
-		window.onmessage = handler;
+		function executeTestInChild(test, suiteNumber, testNumber, callback) {
+			test.emit('start');
+
+			// (Re)load iFrame
+			iframe.src = location.href;
+
+			var handler = function (event) {
+				window.loadedMessage = event;
+				if (event.source === iframe.contentWindow && event.data === 'loaded') {
+					console.log('child loaded');
+					iframe.contentWindow.postMessage({
+						actAsChild: {suite: suiteNumber, test: testNumber}
+					}, '*');
+				} else if (event.source === iframe.contentWindow && event.data && event.data.report) {
+					// Teardown
+					window.removeEventListener('message', handler);
+					//if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+
+					// Extract relevant report
+					var fullReport = event.data.report;
+					var suiteReport = fullReport[suiteNumber] || {tests: []};
+					var testReport = suiteReport.tests[testNumber];
+					if (testReport.error) {
+						test.emit('fail', testReport.error);
+					} else {
+						test.emit('pass', testReport.ms);
+					}
+					test.emit('end');
+					
+					console.log('child report', testReport);
+					callback(testReport);
+				}
+			};
+			window.addEventListener('message', handler);
+		}
+		
+		define(['test-runner'], function (TestRunner) {
+			loadTests(new TestRunner(), function (error, runner) {
+				if (error) throw error;
+				loadUI(runner, function (error, element) {
+					if (error) throw error;
+					runner.run(function (test, suiteNumber, testNumber, callback) {
+						executeTestInChild(test, suiteNumber, testNumber, callback);
+					}, function (report) {
+						console.log('parent report', report);
+					});
+				});
+			});
+		});
 	}
 	function actAsChild(instructions) {
-		if (chosen) return;
+		if (chosen) alert('Chose first child, then parent - communication too slow');
 		chosen = true;
 		console.log('acting as child:', instructions);
-		//runTests();
+		
+		define(['test-runner', 'chai'], function (TestRunner, chai) {
+			window.assert = chai.assert; // TODO: sync require() syntax would obviate this
+		
+			loadTests(new TestRunner(), function (error, runner) {
+				if (error) throw error;
+				
+				runner.run(function (test, suiteNumber, testNumber, callback) {
+					if (suiteNumber === instructions.suite && testNumber === instructions.test) {
+						test.run(callback);
+					} else {
+						callback(null);
+					}
+				}, function (report) {
+					window.parent.postMessage({report: report}, '*');
+				});
+			});
+		});
 	}
 	
 	if (!window.parent || window.parent === window) {
@@ -98,7 +151,9 @@
 			}
 		};
 		window.parent.postMessage('loaded', '*');
-		setTimeout(actAsParent, 1000);
+		setTimeout(function () {
+			actAsParent();
+		}, 5000);
 	}
 	
 	</script>
