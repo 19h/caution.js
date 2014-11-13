@@ -113,9 +113,24 @@
 			func(runNextDebugLoad);
 		}
 	}
+
+	var codeTransformFunctions = [];
+	caution.addLoadTransform = function (func) {
+		codeTransformFunctions.push(func);
+	};
+	
+	function transformCode(name, js) {
+		for (var i = 0; i < codeTransformFunctions.length; i++) {
+			var func = codeTransformFunctions[i];
+			js = func(name, js) || js;
+		}
+		return js;
+	}
 	
 	function loadModuleJs(name, js, hash, url) {
-		if (url && caution.DEBUG) {
+		var originalJs = caution.DEBUG && js;
+		js = transformCode(name, js);
+		if (url && caution.DEBUG && originalJs === js) {
 			// Loading via <script> is not secure (the server could return a different version second time), but it allows inspection
 			console.log('caution.load() success: ', name);
 			addDebugLoad(function (callback) {

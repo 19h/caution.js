@@ -1,6 +1,6 @@
 (function (global) {
 	// JS code for the inline seed
-	var inlineJs = "var sha256=function n(r){function t(n,r){return n>>>r|n<<32-r}for(var e,o,f=Math.pow,i=f(2,32),a=\"length\",u=\"\",c=[],s=8*r[a],_=n.h=n.h||[],h=n.k=n.k||[],l=h[a],p={},v=2;64>l;v++)if(!p[v]){for(e=0;313>e;e+=v)p[e]=v;_[l]=f(v,.5)*i|0,h[l++]=f(v,1/3)*i|0}for(r+=\"\\x80\";r[a]%64-56;)r+=\"\\x00\";for(e=0;e<r[a];e++){if(o=r.charCodeAt(e),o>>8)return;c[e>>2]|=o<<(3-e)%4*8}for(c[c[a]]=s/i|0,c[c[a]]=s,o=0;o<c[a];){var d=c.slice(o,o+=16),m=_;for(_=_.slice(0,8),e=0;64>e;e++){var g=d[e-15],y=d[e-2],C=_[0],S=_[4],w=_[7]+(t(S,6)^t(S,11)^t(S,25))+(S&_[5]^~S&_[6])+h[e]+(d[e]=16>e?d[e]:d[e-16]+(t(g,7)^t(g,18)^g>>>3)+d[e-7]+(t(y,17)^t(y,19)^y>>>10)|0),x=(t(C,2)^t(C,13)^t(C,22))+(C&_[1]^C&_[2]^_[1]&_[2]);_=[w+x|0].concat(_),_[4]=_[4]+w|0}for(e=0;8>e;e++)_[e]=_[e]+m[e]|0}for(e=0;8>e;e++)for(o=3;o+1;o--){var E=_[e]>>8*o&255;u+=(16>E?0:\"\")+E.toString(16)}return u};!function(n){function r(){for(var r,t=0;r=f[t];t++){var a=r[0];if(!a||o[a]){for(var u,c=r[1],s=r[2],_=[],h=0;h<c.length;h++)_[h]=i[u=c[h]],r=u in i&&r,o[u]||(t=o[u]=-1);r&&(f.splice(t,1),s=\"function\"==typeof s?s.apply(n,_):s,a&&(i[a]=s),t=-1)}}e._d&&e._d()}var t=(n.require=function(n,t){if(t){for(var f=0;f<n.length;f++)o[n[f]]=1;return e(0,n,t)}if(o[n]=1,e._m[n]||r(),n in e._m)return e._m[n];throw n},0),e=n.define=function(n,o,i){i||(i=o,n+\"\"===n?o=[]:(o=n||[],n=e._n||\"_anon\"+t++)),f.push([n,o,i]),r()},o=e._r={},f=e._p=[],i=e._m={};e.amd={caution:\"0.5.0\"};var a=e._c={_m:{},fail:function(n,r){alert(\"Missing safe module: \"+n+\"\\n\"+r.join(\"\\n\"))},urls:function(){return[]},_init:function(n,r,t){function o(i){if(f.length){var u=new XMLHttpRequest,c=f.shift();u.open(\"GET\",c),u.onreadystatechange=function(){if(u.readyState>3){for(var r,f=u.status/100^2,i=u.responseText.replace(/\\r/g,\"\"),s=f||sha256(encodeURI(i).replace(/%../g,function(n){return String.fromCharCode(\"0x\"+n[1]+n[2]-0)})),_=0;r=t.pop();)_|=eval(\"/^\"+r+\"/\").test(s);!f&&_?(a._m[e._n=n]=[c,s],Function(i)(),e._n=\"\"):o(1)}};try{u.send()}catch(s){o(s)}}else a.fail(n,r,i)}var f=a.urls(n,r);t=t||r,a._m[n]||(a._m[n]=[],o())}}}(this);";
+	var inlineJs = "var sha256=function n(r){function e(n,r){return n>>>r|n<<32-r}for(var t,f,i=Math.pow,o=i(2,32),a=\"length\",u=\"\",c=[],s=8*r[a],h=n.h=n.h||[],_=n.k=n.k||[],l=_[a],d={},p=2;64>l;p++)if(!d[p]){for(t=0;313>t;t+=p)d[t]=p;h[l]=i(p,.5)*o|0,_[l++]=i(p,1/3)*o|0}for(r+=\"\\x80\";r[a]%64-56;)r+=\"\\x00\";for(t=0;t<r[a];t++){if(f=r.charCodeAt(t),f>>8)return;c[t>>2]|=f<<(3-t)%4*8}for(c[c[a]]=s/o|0,c[c[a]]=s,f=0;f<c[a];){var v=c.slice(f,f+=16),m=h;for(h=h.slice(0,8),t=0;64>t;t++){var g=v[t-15],y=v[t-2],C=h[0],S=h[4],w=h[7]+(e(S,6)^e(S,11)^e(S,25))+(S&h[5]^~S&h[6])+_[t]+(v[t]=16>t?v[t]:v[t-16]+(e(g,7)^e(g,18)^g>>>3)+v[t-7]+(e(y,17)^e(y,19)^y>>>10)|0),x=(e(C,2)^e(C,13)^e(C,22))+(C&h[1]^C&h[2]^h[1]&h[2]);h=[w+x|0].concat(h),h[4]=h[4]+w|0}for(t=0;8>t;t++)h[t]=h[t]+m[t]|0}for(t=0;8>t;t++)for(f=3;f+1;f--){var E=h[t]>>8*f&255;u+=(16>E?0:\"\")+E.toString(16)}return u};!function(n){function r(){for(var r,e=0;r=i[e];e++){var a=r[0];if(!a||f[a]){for(var u,c=r[1],s=r[2],h=[],_=0;_<c.length;_++)h[_]=o[u=c[_]],r=u in o&&r,f[u]||(e=f[u]=-1);r&&(i.splice(e,1),s=\"function\"==typeof s?s.apply(n,h):s,a&&(o[a]=s),e=-1)}}t._d&&t._d()}var e=(n.require=function(n,e){if(e){for(var i=0;i<n.length;i++)f[n[i]]=1;return t(0,n,e)}if(f[n]=1,t._m[n]||r(),n in t._m)return t._m[n];throw n},0),t=n.define=function(n,f,o){o||(o=f,n+\"\"===n?f=[]:(f=n||[],n=t._n||\"_anon\"+e++)),i.push([n,f,o]),r()},f=t._r={},i=t._p=[],o=t._m={};t.amd={caution:\"0.5.0\"}}(this),define._c={_m:{},fail:function(n,r){alert(\"Missing safe module: \"+n+\"\\n\"+r.join(\"\\n\"))},urls:function(){return[]},_init:function(n,r,e){function t(o){if(i.length){var a=new XMLHttpRequest,u=i.shift();a.open(\"GET\",u),a.onreadystatechange=function(){if(a.readyState>3){for(var r,i=a.status/100^2,o=a.responseText.replace(/\\r/g,\"\"),c=i||sha256(encodeURI(o).replace(/%../g,function(n){return String.fromCharCode(\"0x\"+n[1]+n[2]-0)})),s=0;r=e.pop();)s|=eval(\"/^\"+r+\"/\").test(c);!i&&s?(f._m[define._n=n]=[u,c],Function(o)(),define._n=\"\"):t(1)}};try{a.send()}catch(c){t(c)}}else f.fail(n,r,o)}var f=this,i=f.urls(n,r);e=e||r,f._m[n]||(f._m[n]=[],t())}};";
 
 	// Evaluate the seed (we need sha256() anyway), but we don't replace define() unless we need to
 	var func = new Function(inlineJs + 'return {define: define, sha256: sha256};');
@@ -113,9 +113,24 @@
 			func(runNextDebugLoad);
 		}
 	}
+
+	var codeTransformFunctions = [];
+	caution.addLoadTransform = function (func) {
+		codeTransformFunctions.push(func);
+	};
+	
+	function transformCode(name, js) {
+		for (var i = 0; i < codeTransformFunctions.length; i++) {
+			var func = codeTransformFunctions[i];
+			js = func(name, js) || js;
+		}
+		return js;
+	}
 	
 	function loadModuleJs(name, js, hash, url) {
-		if (url && caution.DEBUG) {
+		var originalJs = caution.DEBUG && js;
+		js = transformCode(name, js);
+		if (url && caution.DEBUG && originalJs === js) {
 			// Loading via <script> is not secure (the server could return a different version second time), but it allows inspection
 			console.log('caution.load() success: ', name);
 			addDebugLoad(function (callback) {
