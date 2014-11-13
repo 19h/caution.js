@@ -1,147 +1,112 @@
-# caution.js - a secure AMD implementation
+# caution.js - a module loader for tamper-proof websites
 
-This defines a secure JavaScript module loader with an [AMD-compatible API](https://github.com/amdjs/amdjs-api/blob/master/AMD.md).  It sets up a `define()` function, as well as the `caution` module.
+Caution.js is a module loader, making it easy to have web web-apps which:
 
-Loaded scripts are checked against a list of safe SHA-256 hashes (or other validity criteria you define).  The `caution` module can also generate JavaScript code (or HTML-page `data:` URLs) for secure-boot web-apps, containing `define()` and a set of SHA-256 hashes for the initial scripts.
+* perform secure verification of their own resources (e.g. JS/CSS)
+* use fallback locations if verification fails
 
-Automatic module-fetching can be added using `caution.missingModules()`, `caution.load()` and `caution.addSafe()` - see "Automatic module fetching" below.
+AMD syntax (`define()`) is supported initially, but support for CommonJS modules is being developed, and ES6 module support is planned.
 
-## The `define()` function
+Code is on [BitBucket](https://bitbucket.org/geraintluff/caution.js).  API docs are [here](doc/api.md).  There are some tests (mostly for `define()`/`require()`) in the `test/` directory of the repo.
 
-The `define()` function follows the [Asynchronous Module Definition](https://github.com/amdjs/amdjs-api/blob/master/AMD.md) spec.
+## Motivation and principles
 
-The value of `define.amd` is `{caution: VERSION}`, where VERSION is the version of the `caution` module used to generate it.
+### For some applications, securing the connection is not enough.
 
-## The `caution` API
+If your web-app makes promises about security or privacy (e.g. "we never see unencrypted content"), then users might want to know when the behaviour of the web-app changes. What if one of the servers is compromised, and starts serving bad content? What if you have a rogue sysadmin?
 
-```javascript
-define(['caution'], function (caution) {
-	...
-});
-```
+### To monitor the server's content, you can't start with what the server gives you
 
-Hash values are SHA-256 hashes, written as hexadecimal.  When comparing hashes, they are prefix-matched (so they can be truncated, and `""` will match anything).
+If your starting-point is a web-page that the server gives you, you can't trust any verification that page performs because it might already be broken.  However, if you start from a "known-good" HTML file, you can bootstrap secure verification of resources from there.
 
-**Warning:** fetched resources have newlines normalised to `\n` (Unix) before calculating the hash.
+### Data URLs are a neat place to store a secure starting-page
 
-### `caution.load(moduleName, ?versions)`
+A Data URL is a URL that contains its own content, e.g. [`data:text/html,Hello%20<h1>hello</h1>%20hello`](data:text/html,Hello%20<h1>hello</h1>%20hello).
+All modern browsers support these, and they can be bookmarked like any other URL - this means users can keep the "known-good" HTML in their bookmarks without downloading anything.
 
-Loads a module, checking `caution.isSafe(moduleSource)` before executing.
+### There should be fallback locations for resources/modules
 
-### `caution.loadShim(moduleName, ?versions, ?returnValue, ?dependencies)`
+A failed verification should not break everything - ideally there should be more than one place to look for resources, and the option for the user to supply a location themselves without compromising security.
 
-For modules that don't support AMD syntax, this wraps them in a `define()` call.
+## What's in caution.js?
 
-The optional `returnValue` argument specifies JavaScript code to return at the end (considered to be the result of loading the module).  This defaults to the value of `moduleName`.
+There are two parts to caution.js:
 
-### `caution.get(url, validation, function (error, text, hash) {...})`
+* the "inline code" (to be included in the secure starting-page) that loads and verifies an initial set of resources
+* the `caution` module, which allows you to specify security criteria, perform automatic fetching of modules, etc.
 
-This is a basic text-only method to fetch resources.  If the fetched version is safe, then the content is returned (without error) - otherwise, a truthy value is returned as the error.
+### The inline code
 
-`validation` can be anything you might for use with `caution.addSafe()`, or `null` (defaults to `caution.isSafe()`) or `true` (always succeeds).
+The inline code includes:
 
-### `caution.getFirst(urls, validation, function (error, text, hash, url) {...})`
+* the [SHA-256 hash function](https://github.com/geraintluff/sha256/blob/gh-pages/sha256.js) (~850 bytes minified)
+* an implementation of AMD's [`define()` and `require()` functions](https://bitbucket.org/geraintluff/caution.js/src/master/src/caution-inline-amd.js) (~580 bytes minified)
+* logic to load/verify an initial set of resources
 
-Similar to `caution.get()`, except it tries a series of URLs in sequence.  The successful URL is returned to the callback.
+This inline code is produced by the `caution` module, so your web apps can always generate new `data:` URLs.
 
-### `caution.urls(moduleName, versions)`
+### The `caution` module
 
-Returns a list of possible URLs for a given module.
+The API for this module can be viewed [here](doc/api.md).
 
-`versions` is a list of module versions.  It may be empty, or contain hashes, semver identifiers (e.g. `v1.0.3`) or anything else.  These values have no effect on whether the result is considered valid or not - they are just useful for possible places to look.
+The goal of this module is to make specifying the security requirements simple, while
 
-### `caution.addUrls(urls)`
-
-This adds a place to look for modules.  `urls` must be one of:
-
-* a URI template (string), where `{}` is replaced by the module name (e.g. `/modules/{}.js`)
-* a map (object) from module names to URLs (string or list)
-* a function returning a list of possible URLs, given two arguments (same as `caution.urls()`)
-
-### `caution.isSafe(text, ?hash)`
-
-Returns whether the given text is considered "safe" or not.  If `hash` is not supplied, it is calculated from `text`.
-
-The return value is the hash of the content.
-
-### `caution.addSafe(validation)`
-
-Adds a new set of conditions for safe content.  `validation` may be:
-
-* a hash (string)
-* an array of hashes
-* a function returning a truthy if valid: `function (text, hash, httpStatusCode) {...}`
-
-### `caution.dataUrl(config, ?customCode)`
-
-This returns a `data:` URL for a secure-boot HTML page.  `config` must be an object of the form:
-
-```json
-{
-	"paths": [...], // entries must be objects or strings, same form as caution.addUrls()
-	"load": {
-		"module-name": [...] // list of allowed hashes
-	}
-}
-```
-
-If present, `customCode` must be a string (JavaScript code), or an object that will be converted into global variables (e.g. `{globalState: 12345}`).
-
-### `caution.inlineJs(config, ?customCode)`
-
-Like `caution.dataUrl()`, except it returns just the inline JS instead of a `data:` URL.
-
-### `caution.moduleHash(?moduleName)`
-
-This returns the hash value for the currently-loaded version of a given module.
-
-If `moduleName` is omitted, it returns a map from all known modules to their hashes.
-
-### `caution.missingModules(?handler)`
-
-If no handler is supplied, this returns a list of all module names that have not yet been resolved.  If a `handler` function is supplied, then it is called when a module is referenced that is not yet defined (including once for all existing missing modules).
-
-If a handler returns `true` (or calls `caution.load()` for that module), then that module is marked as handled, and no other handler is notified.
-
-## Automatic module fetching
-
-On its own, `caution` doesn't attempt automatic fetching - you have to explicitly load every module you want to use:
+## Example
 
 ```javascript
-define(['caution'], function (caution) {
-	// Minified version of marked@0.3.2
-	caution.addSafe('8208dd7d61227d3caeece575cfe01fcd60fce360fa7103abb0dc7f6329217eba');
-	caution.load('marked', ['0.3.2']); // Hint the version so we can look it up on CDNs
-});
-```
-
-However, if you have some way to verify the security (e.g. public-key, or a big list), adding automatic fetching is simple:
-
-```javascript
-define(['caution'], function (caution) {
+// Main loading logic
+//	- this could be included with the inline code, or loaded as one of the initial modules
+require(['caution', 'verify-signature'], function (caution, verifySignature) {
+	caution.addUrls([
+		"http://my-site/modules/{}.js",
+		"http://backup-site/modules/{}.js",
+		{"some-particular-module": "http://..."},
+		function (moduleName, versions} {return [...]}
+	]);
+	
+	// Provide our own safety criteria
 	caution.addSafe(function (text, hash) {
-		// Check it against a big list of safe hashes
-		return (hash in giantHashLookup);
+		if (hash in bigListOfSafeHashes) {
+			return true;
+		}
+		return verifySignature(text, ...);
 	});
-
+	
+	// Automatically fetch missing modules
 	caution.missingModules(function (moduleName) {
 		caution.load(moduleName);
 	});
+	
+	// Load some initial scripts to get going
+	caution.load('lets-get-this-party-started');
 });
 ```
 
-If you have fancy rules for where to search for modules, just add them with `caution.addUrls()`:
+## Next steps
+
+This project is in the early stages of development, so there's a lot left to do.  Some things I'm looking forward to:
+
+### CommonJS and ES6 module support
+
+I started with AMD syntax because the API is straightforward and understood, but the asynchronous nature was a good fit for the behaviour I wanted to test it.  CommonJS syntax is widely used (although many modules support both), and could be made asynchronous by scanning for `require('some-module')` in the code (much like Browserify does).
+
+I'm thinking of adding support for the other module formats as modules themselves - e.g. if you were expecting to use CommonJS modules, your inline code would include `caution-commonjs` as one of the initial modules, and your loading code might look something like:
 
 ```javascript
-define(['caution'], function (caution) {
-	caution.addUrls(function (moduleName, versions) {
-		if (/^some-prefix\//.test(moduleName)) {
-			return [...];
-		} else {
-			return versions.map(function (version) {
-				return 'http://my-app/js/' + moduleName + '@' + version + '.js';
-			});
-		}
-	});
+require(['caution', 'caution-commonjs'], function (caution, commonJs) {
+	commonJs.addToCaution(caution);
+
+	// Loading logic, as above
+	...
+
+	caution.load('some-commonjs-module');
 });
 ```
+
+An ES6-compatability module could work similarly, using a shim to transform the syntax.
+
+### caution.js *as* an ES6 module
+
+I'm not sure on the details, but it seems like it could work, and share much of the API with the AMD/CommonJS loader.
+
+What I'm expecting: the inline code would use the Module Loader API to add the initial security checks.  The `caution` ES6 module could then be loaded to add more sophisticated controls, very similar to the example above.

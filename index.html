@@ -6,10 +6,13 @@ var modulePaths = [{'main-page': baseUrl + 'main-page.js'}, baseUrl + 'modules/{
 
 require(['caution'], function (caution) {
 	caution.addUrls(modulePaths);
+	
 	caution.getFirst(caution.urls('caution'), true, function (error, text, cautionHash) {
 		if (error) throw error;
 		caution.getFirst(caution.urls('main-page'), true, function (error, text, mainPageHash) {
 			if (error) throw error;
+			
+			// We now have the hashed versions of our initial two modules
 			var config = {
 				paths: modulePaths,
 				load: {
@@ -31,40 +34,4 @@ require(['caution'], function (caution) {
 	});
 });
 
-/*
-require(['caution'], function (caution) {
-	caution.urls = function (moduleName) {
-		return [
-			moduleName + '.js',
-			'modules/' + moduleName + '.js'
-		];
-	};
-	caution.addSafe(function (text, hash) {
-		return true; // No verification
-	});
-
-	caution.load('caution');
-	caution.load('main-page');
-});
-
-require(['caution', 'main-page'], function (caution) {
-	caution.getFirst(caution.urls('caution'), null, function (error, text, cautionHash) {
-		var config = {
-			paths: [{'main-page': baseUrl + 'main-page.js'}, baseUrl + 'modules/{}.js'],
-			load: {
-				'caution': cautionHash,
-				'main-page': [caution.moduleHash('main-page')]
-			}
-		};
-		
-		var url = caution.dataUrl(config, {baseUrl: baseUrl});
-		if (/#redirect/.test(location.href)) return location.replace(url);
-
-		var js = caution.inlineJs(config, {baseUrl: baseUrl});
-		console.log(js);
-		console.log(url);
-		console.log('length', url.length);
-	});
-});
-*/
 </script>
