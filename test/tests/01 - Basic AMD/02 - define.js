@@ -11,6 +11,18 @@ describe('Basic define()', function () {
 		});
 	});
 
+	it('omit dependencies', function (done) {
+		define('A', function () {
+			executed = true;
+			return {foo: 'bar'}
+		});
+		
+		require(['A'], function (A) {
+			if (A.foo !== "bar") throw new Error('A.foo !== "bar"');
+			done();
+		});
+	});
+
 	it('defines modules only when needed', function (done) {
 		var defined = false;
 		

@@ -2,35 +2,42 @@
 //	therefore we use EVAL and FUNCTION, and replace them after minifying
 
 (function (global) {
-	var require = global.require = function (nameOrDeps, func) {
+	var require = global['require'] = function (nameOrDeps, func) {
 		if (func) {
 			for (var i = 0; i < nameOrDeps.length; i++) {
 				isRequired[nameOrDeps[i]] = 1;
 			}
 			return define(0, nameOrDeps, func)
 		} else {
-			isRequired[nameOrDeps] = 1;
-			scan();
+			isRequired[nameOrDeps] = 1;			
+			// For efficiency, don't scan if we already have a result - costs us ~10 bytes, but probably worth it
+			if (!define._m[nameOrDeps]) {
+				scanForReadyModules();
+			}
 			if (nameOrDeps in define._m) return define._m[nameOrDeps];
 			throw nameOrDeps;
 		}
 	};
-	var define = global.define = function (name, deps, factory) {
+	var counter = 0;
+	var define = global['define'] = function (name, deps, factory) {
 		if (!factory) {
 			factory = deps;
-			deps = name || [];
-			name = define._n || Math.random();
+			if (name + "" === name) {
+				deps = [];
+			} else {
+				deps = name || [];
+				name = define._n || ('_anon' + counter++);
+			}
 		}
 		pending.push([name, deps, factory]);
 	
-		scan();
+		scanForReadyModules();
 	};
 	var isRequired = define._r = {};
 	var pending = define._p = [];
 	var modules = define._m = {};
 	
-	function scan() {
-		// Scan for modules ready to evaluate
+	function scanForReadyModules() {
 		var item;
 		for (var pendingIndex = 0; item = pending[pendingIndex]; pendingIndex++) {
 			var name = item[0];
@@ -46,7 +53,6 @@
 					item = (depName in modules) && item;
 					// Mark all our dependencies as required, restarting if necessary
 					if (!isRequired[depName]) {
-						// Set pendingIndex to -1 to restart the sweep
 						pendingIndex = isRequired[depName] = -1;
 					}
 				}
@@ -56,7 +62,6 @@
 					if (name) {
 						modules[name] = value;
 					}
-					// Set pendingIndex to -1 to restart the sweep
 					pendingIndex = -1;
 				}
 			}
@@ -68,7 +73,7 @@
 	define.amd = {caution: VERSION};
 
 	// This is the inline seed of the caution module - _m, fail() and urls() are kept on for continuity
-	define._c = {
+	var cautionSeed = define._c = {
 		_m: {}, // Existing modules, (name -> [url, hash]) - pending modules should have truthy values
 		fail: function (name, versions, error) {
 			alert('Missing safe module: ' + name + '\n' + versions.join('\n'));
@@ -77,13 +82,12 @@
 			return [];
 		},
 		_init: function (name, versions, hashes) {
-			var thisCaution = this;
-			var urls = thisCaution.urls(name, versions);
+			var urls = cautionSeed.urls(name, versions);
 		
 			hashes = hashes || versions;
 		
-			if (!thisCaution._m[name]) {
-				thisCaution._m[name] = [];
+			if (!cautionSeed._m[name]) {
+				cautionSeed._m[name] = [];
 			
 				function next(error) {
 					if (urls.length) {
@@ -107,9 +111,8 @@
 								}
 							
 								if (!statusNotOK && match) {
-									// It maches - load it!
-									define._n = name;
-									thisCaution._m[name] = [url, hash];
+									// It matches - load it!
+									cautionSeed._m[define._n = name] = [url, hash];
 									FUNCTION(content)();
 									define._n = '';
 								} else {
@@ -124,7 +127,7 @@
 							next(e);
 						}
 					} else {
-						thisCaution.fail(name, versions, error);
+						cautionSeed.fail(name, versions, error);
 					}
 				}
 				next();
