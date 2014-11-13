@@ -24,8 +24,12 @@ function minify(input, name) {
 var packageInfo = require('./package.json');
 var version = packageInfo.version;
 
-minify([__dirname + '/src/caution-inline.js'], 'inline only')
-var minified = minify([__dirname + '/node_modules/tiny-sha256/sha256.js', __dirname + '/src/caution-inline.js'], 'inline+sha');
+minify([__dirname + '/src/caution-inline-amd.js'], 'inline-amd');
+minify([__dirname + '/src/caution-inline-seed.js'], 'inline-seed');
+minify([__dirname + '/src/caution-inline-amd.js', __dirname + '/src/caution-inline-seed.js'], 'inline (both)');
+minify([__dirname + '/node_modules/tiny-sha256/sha256.js'], 'sha only');
+
+var minified = minify([__dirname + '/node_modules/tiny-sha256/sha256.js', __dirname + '/src/caution-inline-amd.js', __dirname + '/src/caution-inline-seed.js'], 'inline+sha');
 minified = minified.replace('VERSION', JSON.stringify(version));
 fs.writeFileSync(__dirname + '/inline.js', minified);
 
