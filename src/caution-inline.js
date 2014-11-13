@@ -12,10 +12,10 @@
 			isRequired[nameOrDeps] = 1;
 			scan();
 			if (nameOrDeps in define._m) return define._m[nameOrDeps];
-			throw 1;
+			throw nameOrDeps;
 		}
 	};
-	var define = global.define = function define(name, deps, factory) {
+	var define = global.define = function (name, deps, factory) {
 		if (!factory) {
 			factory = deps;
 			deps = name || [];
@@ -30,38 +30,40 @@
 	var modules = define._m = {};
 	
 	function scan() {
-		// Hook for later, so the caution module gets notified when anything happens with define() or require()
-		// This has to be after pending.push(), so caution can inspect everything
-		if (define._d) define._d();
-	
 		// Scan for modules ready to evaluate
-		for (var pendingIndex = 0; pendingIndex < pending.length; pendingIndex++) {
-			var item = pending[pendingIndex];
+		var item;
+		for (var pendingIndex = 0; item = pending[pendingIndex]; pendingIndex++) {
 			var name = item[0];
 			if (!name || isRequired[name]) {
 				var deps = item[1];
-				var factory = item[2];
+				var value = item[2];
 
 				var args = [];
+				var depName;
 				for (var j = 0; j < deps.length; j++) {
-					var dep = deps[j];
-					args[j] = modules[dep];
+					args[j] = modules[depName = deps[j]];
 					// Use item as a flag for whether we're ready to go
-					item = (dep in modules) && item;
-					if (!isRequired[dep]) {
-						pendingIndex = isRequired[dep] = -1;
+					item = (depName in modules) && item;
+					// Mark all our dependencies as required, restarting if necessary
+					if (!isRequired[depName]) {
+						// Set pendingIndex to -1 to restart the sweep
+						pendingIndex = isRequired[depName] = -1;
 					}
 				}
 				if (item) { // Ready to evaluate
 					pending.splice(pendingIndex, 1);
-					item = (typeof factory === 'function') ? factory.apply(global, args) : factory;
+					value = (typeof value === 'function') ? value.apply(global, args) : value;
 					if (name) {
-						modules[name] = item;
+						modules[name] = value;
 					}
+					// Set pendingIndex to -1 to restart the sweep
 					pendingIndex = -1;
 				}
 			}
 		}
+
+		// Hook for later, so the caution module gets notified when anything happens with define() or require()
+		if (define._d) define._d();
 	};
 	define.amd = {caution: VERSION};
 
