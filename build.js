@@ -36,6 +36,7 @@ fs.writeFileSync(__dirname + '/modules/caution.js', main);
 function walkDirectory(dir, prefix, filterFunction) {
 	var combined = path.join(prefix || '', dir);
 	var entries = fs.readdirSync(combined);
+	entries.sort();
 	var result = [];
 	entries.forEach(function (entry) {
 		entry = path.join(dir, entry);
@@ -53,8 +54,8 @@ function walkDirectory(dir, prefix, filterFunction) {
 	return result;
 }
 
-var testList = walkDirectory('tests', __dirname + '/test', function (filename) {
-	return /\.js$/.test(filename);
+var testList = walkDirectory('tests', __dirname + '/test', function (filename, isDirectory) {
+	return /\.js$/.test(filename) || isDirectory;
 });
 console.log('found ' + testList.length + ' tests');
 fs.writeFileSync(__dirname + '/test/test-list.json', JSON.stringify(testList, null, '\t'));

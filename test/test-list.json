@@ -1,3 +1,7 @@
 [
-	"tests/define.js"
+	"tests/00 - Environment.js",
+	"tests/01 - Basic AMD/01 - require.js",
+	"tests/01 - Basic AMD/02 - define.js",
+	"tests/02 - Rich AMD/01 - async require.js",
+	"tests/03 - caution module/01 - Basic.js"
 ]

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<link rel="stylesheet" href="modules/test-runner-html.css"/>
+	<link rel="stylesheet" href="mordules/test-runner-html.css"/>
 </head>
 <body>
 	<script>var VERSION = 'dev'</script>
@@ -9,7 +9,7 @@
 	<script src="../modules/caution.js"></script>
 	</script src="tests.js"></script>
 	<script>
-	define(['caution'], function (caution) {
+	require(['caution'], function (caution) {
 		caution.DEBUG = true;
 		caution.fail = function (moduleName, versions) {
 			throw new Error('Missing safe ' + moduleName + '\n' + versions.join('\n'));
@@ -32,7 +32,7 @@
 	});
 
 	function loadTests(runner, callback) {
-		define(['caution'], function (caution) {
+		require(['caution'], function (caution) {
 			caution.get('test-list.json', true, function (error, listJson) {
 				if (error) return callback(error);
 				var list = JSON.parse(listJson);
@@ -46,7 +46,7 @@
 	}
 	
 	function loadUI(runner, callback) {
-		define(['test-runner-html'], function (domUI) {
+		require(['test-runner-html'], function (domUI) {
 			document.title = "Caution.js tests";
 		
 			var targetDiv = document.createElement('div');
@@ -105,7 +105,7 @@
 			window.addEventListener('message', handler);
 		}
 		
-		define(['test-runner'], function (TestRunner) {
+		require(['test-runner'], function (TestRunner) {
 			loadTests(new TestRunner(), function (error, runner) {
 				if (error) throw error;
 				loadUI(runner, function (error, element) {
@@ -124,7 +124,7 @@
 		chosen = true;
 		console.log('acting as child:', instructions);
 		
-		define(['test-runner', 'chai'], function (TestRunner, chai) {
+		require(['test-runner', 'chai'], function (TestRunner, chai) {
 			window.assert = chai.assert; // TODO: sync require() syntax would obviate this
 		
 			loadTests(new TestRunner(), function (error, runner) {

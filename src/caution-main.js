@@ -140,9 +140,11 @@
 	}
 	
 	var cacheSaveFunctions = [], cacheLoadFunctions = [];
-	caution.addCache = function (saveFunction, loadFunction) {
-		if (saveFunction) cacheSaveFunctions.push(saveFunction);
-		if (loadFunction) cacheLoadFunctions.push(loadFunction);
+	caution.addLoad = function (loadFunction) {
+		cacheLoadFunctions.push(loadFunction);
+	};
+	caution.addSave = function (saveFunction) {
+		cacheSaveFunctions.push(saveFunction);
 	};
 	
 	/*
@@ -376,6 +378,8 @@
 	// Hacky hook into define() so we get told about every dependency
 	global.define._d = function () {
 		var pending = global.define._p || [];
+		if (!pending.length) return;
+		
 		var triplet = pending[pending.length - 1];
 		var name = triplet[0];
 	

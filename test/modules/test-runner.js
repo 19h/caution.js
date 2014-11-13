@@ -48,7 +48,11 @@ define('test-runner', ['caution', 'events'], function (caution, events) {
 				callback({
 					name: thisTest.name,
 					ms: durationMs,
-					error: error
+					// We can't use the actual error object because it doesn't serialise (JSON or postMessage)
+					error: !error ? null : {
+						message: error.message,
+						stack: error.stack || error.message
+					}
 				});
 			}
 			var doneTimeout = setTimeout(function () {
