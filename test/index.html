@@ -9,8 +9,9 @@
 	<script src="../modules/caution.js"></script>
 	</script src="tests.js"></script>
 	<script>
+	require('caution').DEBUG = true;
+	
 	require(['caution'], function (caution) {
-		caution.DEBUG = true;
 		caution.fail = function (moduleName, versions) {
 			throw new Error('Missing safe ' + moduleName + '\n' + versions.join('\n'));
 		};

@@ -20,14 +20,17 @@
 	};
 	var counter = 0;
 	var define = global['define'] = function (name, deps, factory) {
-		if (!factory) {
-			factory = deps;
-			if (name + "" === name) {
+		if (!name || (name + "" === name)) {
+			// We were given a name (or a falsy value to indicate no module name at all)
+			if (!factory) {
+				factory = deps;
 				deps = [];
-			} else {
-				deps = name || [];
-				name = define._n || ('_anon' + counter++);
 			}
+		} else {
+			factory = deps || name;
+			// Two arguments -> actual deps in the name, otherwise only one argument
+			deps = deps ? name : [];
+			name = define._n || ('_anon' + counter++);
 		}
 		pending.push([name, deps, factory]);
 	

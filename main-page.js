@@ -3,7 +3,7 @@ var contentDiv = document.createElement('div');
 contentDiv.innerHTML = 'Loading...';
 document.body.appendChild(contentDiv);
 
-define(['caution'], function (caution) {
+require(['caution'], function (caution) {
 	caution.addUrls({
 		'marked': 'http://cdnjs.cloudflare.com/ajax/libs/marked/0.3.2/marked.min.js',
 		'Prism': 'http://cdnjs.cloudflare.com/ajax/libs/prism/0.0.1/prism.min.js'		
@@ -21,7 +21,7 @@ define(['caution'], function (caution) {
 	});
 });
 
-define(['caution', 'marked', 'Prism'], function (caution, marked, Prism) {
+require(['caution', 'marked', 'Prism'], function (caution, marked, Prism) {
 
 	Prism.languages.json = Prism.languages.json || Prism.languages.javascript;
 	
@@ -36,7 +36,7 @@ define(['caution', 'marked', 'Prism'], function (caution, marked, Prism) {
 	});
 });
 
-define(['caution'], function (caution) {
+require(['caution'], function (caution) {
 	caution.missingModules(function (moduleName) {
 		alert('Missing ' + moduleName);
 	});

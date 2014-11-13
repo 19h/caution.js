@@ -2,7 +2,37 @@
 <script>
 var baseUrl = location.href.replace(/[^\/]+$/, '');
 
-define(['caution'], function (caution) {
+var modulePaths = [{'main-page': baseUrl + 'main-page.js'}, baseUrl + 'modules/{}.js'];
+
+require(['caution'], function (caution) {
+	caution.addUrls(modulePaths);
+	caution.getFirst(caution.urls('caution'), true, function (error, text, cautionHash) {
+		if (error) throw error;
+		caution.getFirst(caution.urls('main-page'), true, function (error, text, mainPageHash) {
+			if (error) throw error;
+			var config = {
+				paths: modulePaths,
+				load: {
+					'caution': cautionHash,
+					'main-page': mainPageHash
+				},
+				DEBUG: caution.DEBUG || /#(.*&)*debug($|&)/.test(location.href)
+			};
+
+			if (/#redirect/.test(location.href)) {
+				var url = caution.dataUrl(config, {baseUrl: baseUrl});
+				return location.replace(url);
+			}
+			
+			var js = caution.inlineJs(config, {baseUrl: baseUrl});
+			console.log(js);
+			Function(js)();
+		});
+	});
+});
+
+/*
+require(['caution'], function (caution) {
 	caution.urls = function (moduleName) {
 		return [
 			moduleName + '.js',
@@ -17,7 +47,7 @@ define(['caution'], function (caution) {
 	caution.load('main-page');
 });
 
-define(['caution', 'main-page'], function (caution) {
+require(['caution', 'main-page'], function (caution) {
 	caution.getFirst(caution.urls('caution'), null, function (error, text, cautionHash) {
 		var config = {
 			paths: [{'main-page': baseUrl + 'main-page.js'}, baseUrl + 'modules/{}.js'],
@@ -36,4 +66,5 @@ define(['caution', 'main-page'], function (caution) {
 		console.log('length', url.length);
 	});
 });
+*/
 </script>

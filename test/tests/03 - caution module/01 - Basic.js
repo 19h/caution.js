@@ -20,6 +20,32 @@ describe('caution module', function () {
 		});
 	});
 
+	it('load supports anonymous modules', function (done) {
+		var caution = require('caution');
+		caution.addLoad(function (name, versions, callback) {
+			if (name === 'demo1') return callback(null, "define([], {name: 'demo1'});");
+			callback(true);
+		});
+		
+		require(['demo1'], function (demo1) {
+			assert.equal(demo1.name, 'demo1');
+			done();
+		});
+	});
+	
+	it('load supports anonymous modules without dependencies', function (done) {
+		var caution = require('caution');
+		caution.addLoad(function (name, versions, callback) {
+			if (name === 'demo1') return callback(null, "define({name: 'demo1'});");
+			callback(true);
+		});
+		
+		require(['demo1'], function (demo1) {
+			assert.equal(demo1.name, 'demo1');
+			done();
+		});
+	});
+	
 	it('add code-transform method', function (done) {
 		var caution = require('caution');
 		

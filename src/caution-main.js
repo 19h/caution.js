@@ -40,7 +40,7 @@
 	}
 	
 	/**** Methods ****/
-
+	
 	caution.get = function (url, isSafe, callback) {
 		if (typeof callback[0] === 'string') throw new Error('!!!');
 		var request = new XMLHttpRequest;
@@ -49,12 +49,14 @@
 			var hashes = [].concat(isSafe);
 			isSafe = function (text, hash) {
 				for (var i = 0; i < hashes.length; i++) {
-					if (hash.substring(0, hashes[i].length) == hashes[i]) return true;
+					if (hash.substring(0, hashes[i].length) == hashes[i]) return hash;
 				}
 				return false;
 			};
 		} else if (isSafe === true) {
-			isSafe = function () {return true;};
+			isSafe = function (text, hash) {
+				return hash;
+			};
 		}
 		
 		request.open("GET", url);
@@ -87,8 +89,8 @@
 
 			errors.push(error);
 			if (i >= urls.length) {
-				var error = new Error('Error fetching: ' + url);
 				error.errors = errors.slice(1);
+				var error = new Error('Error fetching (' + error.errors.length + ' attempts): ' + url);
 				return callback(error);
 			}
 			url = urls[i++];
@@ -110,7 +112,7 @@
 	function addDebugLoad(func) {
 		pendingDebugLoads.push(func);
 		if (pendingDebugLoads.length === 1) {
-			func(runNextDebugLoad);
+			runNextDebugLoad();
 		}
 	}
 
@@ -134,23 +136,26 @@
 			// Loading via <script> is not secure (the server could return a different version second time), but it allows inspection
 			console.log('caution.load() success: ', name);
 			addDebugLoad(function (callback) {
+				var oldName = define._n;
 				define._n = name;
 				var script = document.createElement('script');
 				script.src = url;
 				script.onload = function () {
 					// We're about to execute
 					setTimeout(function () {
-						define._n = '';
+						define._n = oldName;
+						caution._m[name] = [url, hash];
 						callback();
 					}, 10);
 				};
 				document.head.appendChild(script);
 			});
 		} else {
+			var oldName = define._n;
 			define._n = name;
 			caution._m[name] = [url, hash];
 			Function(js)();
-			define._n = '';
+			define._n = oldName;
 		}
 	}
 	
@@ -316,6 +321,9 @@
 				return 'return 0';
 			}
 		});
+		if (config.DEBUG) {
+			js += 'define._c.DEBUG=true;';
+		}
 		for (var key in config.load) {
 			js += 'define._c._init(' + JSON.stringify(key) + ',' + JSON.stringify([].concat(config.load[key])) + ');';
 		}
@@ -373,7 +381,7 @@
 			deps = pending[j][1];
 			for (var i = 0; i < deps.length; i++) {
 				var moduleName = deps[i];
-				if (!knownModules[moduleName]) {
+				if (moduleName && !knownModules[moduleName]) {
 					knownModules[moduleName] = true;
 					// Call the handlers in sequence
 					for (var j = 0; j < missingHandlers.length; j++) {
@@ -398,8 +406,10 @@
 		var triplet = pending[pending.length - 1];
 		var name = triplet[0];
 	
-		knownModules[name] = true;
-		caution._m[name] = caution._m[name] || [];
+		if (name) {
+			knownModules[name] = true;
+			caution._m[name] = caution._m[name] || [null, null];
+		}
 		asap(scanDependencies);
 	};
 	// We already know about currently-defined and pending modules
