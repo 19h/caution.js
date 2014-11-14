@@ -24,17 +24,18 @@ function minify(input, name) {
 var packageInfo = require('./package.json');
 var version = packageInfo.version;
 
-minify([__dirname + '/src/caution-inline-amd.js'], 'inline-amd');
-minify([__dirname + '/src/caution-inline-seed.js'], 'inline-seed');
-minify([__dirname + '/src/caution-inline-amd.js', __dirname + '/src/caution-inline-seed.js'], 'inline (both)');
-minify([__dirname + '/node_modules/tiny-sha256/sha256.js'], 'sha only');
+minify([__dirname + '/src/caution-inline-amd.js'], 'amd');
+minify([__dirname + '/node_modules/tiny-sha256/sha256.js'], 'sha256');
+var minifiedSeed = minify([__dirname + '/src/caution-inline-seed.js'], 'caution seed');
+var minifiedInline = minify([__dirname + '/src/caution-inline-amd.js', __dirname + '/node_modules/tiny-sha256/sha256.js'], 'amd+sha256');
 
-var minified = minify([__dirname + '/node_modules/tiny-sha256/sha256.js', __dirname + '/src/caution-inline-amd.js', __dirname + '/src/caution-inline-seed.js'], 'inline+sha');
-minified = minified.replace('VERSION', JSON.stringify(version));
-fs.writeFileSync(__dirname + '/inline.js', minified);
+minifiedInline = minifiedInline.replace('VERSION', JSON.stringify(version));
+fs.writeFileSync(__dirname + '/inline.js', minifiedInline);
+fs.writeFileSync(__dirname + '/inline-seed.js', minifiedSeed);
 
 var main = fs.readFileSync(__dirname + '/src/caution-main.js', {encoding: 'utf-8'});
-main = main.replace('INLINE', JSON.stringify(minified));
+main = main.replace('JS_SEED_CAUTION', JSON.stringify(minifiedSeed));
+main = main.replace('JS_SEED_CORE', JSON.stringify(minifiedInline));
 fs.writeFileSync(__dirname + '/modules/caution.js', main);
 
 function walkDirectory(dir, prefix, filterFunction) {

@@ -7,7 +7,7 @@ define._c = {
 	urls: function (moduleName, versions, error) {
 		return [];
 	},
-	_init: function (name, versions, hashes) {
+	load: function (name, versions, hashes) {
 		var cautionSeed = this;
 		var urls = cautionSeed.urls(name, versions);
 	

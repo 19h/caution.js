@@ -1,3 +1,4 @@
 node_modules
 .DS_Store
 inline.js
+inline-seed.js

@@ -148,7 +148,7 @@ define('test-runner', ['caution', 'events'], function (caution, events) {
 			if (!urls.length) return callback(null);
 			
 			var thisRunner = this;
-			caution.get(urls.shift(), null, function (error, js) {
+			caution.get(urls.shift(), true, function (error, js) {
 				if (error) {
 					return callback(error);
 				}

@@ -1,9 +1,10 @@
 (function (global) {
-	// JS code for the inline seed
-	var inlineJs = INLINE;
+	// JS code for the seed
+	var jsSeedCore = JS_SEED_CORE;
+	var jsSeedCaution = JS_SEED_CAUTION;
 
 	// Evaluate the seed (we need sha256() anyway), but we don't replace define() unless we need to
-	var func = new Function(inlineJs + 'return {define: define, sha256: sha256};');
+	var func = new Function(jsSeedCore + jsSeedCaution + 'return {define: define, sha256: sha256};');
 	var result = func.call(global);
 	
 	// Set up the global "define" if it doesn't already exist
@@ -11,7 +12,7 @@
 		define = global.define = result.define;
 	}
 	// Extract the seed - we keep existing definitions for _m, urls(), and fail(), but everything else is defined here
-	var caution = define._c; // Yeah, that's a bit bad
+	var caution = define._c || {};
 	
 	var sha256 = result.sha256;
 	function sha256unicode(text) {
@@ -47,14 +48,14 @@
 		isSafe = isSafe || caution.isSafe;
 		if (typeof isSafe === 'string' || typeof isSafe === 'object') {
 			var hashes = [].concat(isSafe);
-			isSafe = function (text, hash) {
+			isSafe = function (text, hash, url) {
 				for (var i = 0; i < hashes.length; i++) {
 					if (hash.substring(0, hashes[i].length) == hashes[i]) return hash;
 				}
 				return false;
 			};
 		} else if (isSafe === true) {
-			isSafe = function (text, hash) {
+			isSafe = function (text, hash, url) {
 				return hash;
 			};
 		}
@@ -66,7 +67,7 @@
 				var hash;
 				if (request.status < 200 || request.status >= 300) {
 					callback(new Error('Response code not OK: ' + request.status));
-				} else if (hash = isSafe(content, sha256unicode(content))) {
+				} else if (hash = isSafe(content, sha256unicode(content), url)) {
 					callback(null, content, hash);
 				} else {
 					callback(new Error('Content was not safe'));
@@ -190,20 +191,20 @@
 	}
 	*/
 	
-	caution.load = function (name, versions, noCache) {
+	caution.load = function (name, versions, isSafe) {
 		if (caution._m[name]) return;
 		caution._m[name] = [];
 
 		versions = versions ? [].concat(versions) : [];
 
-		var options = noCache ? [] : cacheLoadFunctions.slice(0);
+		var options = cacheLoadFunctions.slice(0);
 		function next() {
 			if (options.length) {
 				// Try alternative fetching functions first
 				var func = options.shift();
-				func(name, versions, function (error, js, hash) {
-					if (!error && (hash = caution.isSafe(js, hash))) {
-						loadModuleJs(name, js, hash, null);
+				func(name, versions, function (error, js, hash, url) {
+					if (!error && (hash = caution.isSafe(js, hash, url || null))) {
+						loadModuleJs(name, js, hash, url || null);
 					} else {
 						next();
 					}
@@ -211,7 +212,7 @@
 			} else {
 				// Fetch via AJAX
 				var urls = caution.urls(name, versions);
-				caution.getFirst(urls, null, function (error, js, hash, url) {
+				caution.getFirst(urls, isSafe || null, function (error, js, hash, url) {
 					if (error) {
 						if (!define._m[name]) {
 							caution.fail(name, versions);
@@ -271,18 +272,18 @@
 	};
 	
 	var validationFunctions = [];
-	caution.isSafe = function (text, hash) {
+	caution.isSafe = function (text, hash, url) {
 		hash = hash || sha256unicode(text);
 		for (var i = 0; i < validationFunctions.length; i++) {
 			var func = validationFunctions[i];
-			if (func(text, hash)) return hash;
+			if (func(text, hash, url)) return hash;
 		}
 		return false;
 	};
 	caution.addSafe = function (func) {
 		if (typeof func !== 'function') {
 			var hashes = [].concat(func); // array of hashes
-			func = function (text, hash) {
+			func = function (text, hash, url) {
 				for (var i = 0; i < hashes.length; i++) {
 					if (hash.substring(0, hashes[i].length) == hashes[i]) return true;
 				}
@@ -291,10 +292,18 @@
 		}
 		validationFunctions.push(func);
 	};
-	caution.addSafe(caution.hashes || []);
 	
 	caution.dataUrl = function (config, customCode) {
-		var html = '<!DOCTYPE html><html><body><script>' + caution.inlineJs(config, customCode) + '</script></body></html>';
+		customCode = config.init || '';
+		if (typeof customCode === 'object') {
+			var vars = [];
+			for (var key in customCode) {
+				vars.push(key + '=' + JSON.stringify(customCode[key]));
+			}
+			customCode = 'var ' + vars.join(',') + ';';
+		}
+
+		var html = '<!DOCTYPE html><html><body><script>' + caution.inlineJs(config) + '</script><script id="init">' + customCode + '</script></body></html>';
 		
 		if (typeof btoa === 'function') {
 			return 'data:text/html;base64,' + btoa(html);
@@ -303,38 +312,17 @@
 		}
 	};
 	
-	caution.inlineJs = function (config, customCode) {
-		var js = inlineJs;
-		js = js.replace(/urls\:[^\}]*?\}/, function (def) {
+	caution.inlineJs = function (config) {
+		var customCaution = jsSeedCaution.replace(/urls\:[^\}]*?\}/, function (def) {
 			var code = config.paths.map(templateToCode);
 			return 'urls:function(m){return[].concat(' + code.join(',') + ')}';
 		});
-		js = js.replace(/return VERIFICATION\((.*?)\)/, function (block, hashVar) {
-			var hashes = config.hashes || [];
-			var code = hashes.map(function (hash) {
-				hash = hash.toLowerCase().replace(/[^0-9a-f]/g, '');
-				return '/' + hash + '/.test(' + hashVar + ')';
-			}).join('||');
-			if (code) {
-				return 'return' + code;
-			} else {
-				return 'return 0';
-			}
-		});
+		var js = jsSeedCode + customCaution;
 		if (config.DEBUG) {
 			js += 'define._c.DEBUG=true;';
 		}
 		for (var key in config.load) {
-			js += 'define._c._init(' + JSON.stringify(key) + ',' + JSON.stringify([].concat(config.load[key])) + ');';
-		}
-		
-		customCode = customCode || '';
-		if (typeof customCode === 'object') {
-			var vars = [];
-			for (var key in customCode) {
-				vars.push(key + '=' + JSON.stringify(customCode[key]));
-			}
-			customCode = 'var ' + vars.join(',') + ';';
+			js += 'define._c.load(' + JSON.stringify(key) + ',' + JSON.stringify([].concat(config.load[key])) + ');';
 		}
 		return js + customCode;
 	};
@@ -353,7 +341,7 @@
 	
 	var knownModules = {};
 	var missingHandlers = [];
-	caution.missingModules = function (func) {
+	caution.missing = function (func) {
 		if (!func) {
 			var result = [];
 			for (var key in knownModules) {
@@ -363,7 +351,7 @@
 			return result;
 		} else {
 			asap(function () {
-				var missing = caution.missingModules();
+				var missing = caution.missing();
 				for (var i = 0; i < missing.length; i++) {
 					if (func(missing[i])) {
 						// Mark as handled

@@ -1,9 +1,10 @@
 (function (global) {
-	// JS code for the inline seed
-	var inlineJs = "var sha256=function n(r){function e(n,r){return n>>>r|n<<32-r}for(var t,f,i=Math.pow,o=i(2,32),a=\"length\",u=\"\",c=[],s=8*r[a],h=n.h=n.h||[],_=n.k=n.k||[],l=_[a],d={},p=2;64>l;p++)if(!d[p]){for(t=0;313>t;t+=p)d[t]=p;h[l]=i(p,.5)*o|0,_[l++]=i(p,1/3)*o|0}for(r+=\"\\x80\";r[a]%64-56;)r+=\"\\x00\";for(t=0;t<r[a];t++){if(f=r.charCodeAt(t),f>>8)return;c[t>>2]|=f<<(3-t)%4*8}for(c[c[a]]=s/o|0,c[c[a]]=s,f=0;f<c[a];){var v=c.slice(f,f+=16),m=h;for(h=h.slice(0,8),t=0;64>t;t++){var g=v[t-15],y=v[t-2],C=h[0],S=h[4],w=h[7]+(e(S,6)^e(S,11)^e(S,25))+(S&h[5]^~S&h[6])+_[t]+(v[t]=16>t?v[t]:v[t-16]+(e(g,7)^e(g,18)^g>>>3)+v[t-7]+(e(y,17)^e(y,19)^y>>>10)|0),x=(e(C,2)^e(C,13)^e(C,22))+(C&h[1]^C&h[2]^h[1]&h[2]);h=[w+x|0].concat(h),h[4]=h[4]+w|0}for(t=0;8>t;t++)h[t]=h[t]+m[t]|0}for(t=0;8>t;t++)for(f=3;f+1;f--){var E=h[t]>>8*f&255;u+=(16>E?0:\"\")+E.toString(16)}return u};!function(n){function r(){for(var r,e=0;r=i[e];e++){var a=r[0];if(!a||f[a]){for(var u,c=r[1],s=r[2],h=[],_=0;_<c.length;_++)h[_]=o[u=c[_]],r=u in o&&r,f[u]||(e=f[u]=-1);r&&(i.splice(e,1),s=\"function\"==typeof s?s.apply(n,h):s,a&&(o[a]=s),e=-1)}}t._d&&t._d()}var e=(n.require=function(n,e){if(e){for(var i=0;i<n.length;i++)f[n[i]]=1;return t(0,n,e)}if(f[n]=1,t._m[n]||r(),n in t._m)return t._m[n];throw n},0),t=n.define=function(n,f,o){n&&n+\"\"!==n?(o=f||n,f=f?n:[],n=t._n||\"_anon\"+e++):o||(o=f,f=[]),i.push([n,f,o]),r()},f=t._r={},i=t._p=[],o=t._m={};t.amd={caution:\"0.5.0\"}}(this),define._c={_m:{},fail:function(n,r){alert(\"Missing safe module: \"+n+\"\\n\"+r.join(\"\\n\"))},urls:function(){return[]},_init:function(n,r,e){function t(o){if(i.length){var a=new XMLHttpRequest,u=i.shift();a.open(\"GET\",u),a.onreadystatechange=function(){if(a.readyState>3){for(var r,i=a.status/100^2,o=a.responseText.replace(/\\r/g,\"\"),c=i||sha256(encodeURI(o).replace(/%../g,function(n){return String.fromCharCode(\"0x\"+n[1]+n[2]-0)})),s=0;r=e.pop();)s|=eval(\"/^\"+r+\"/\").test(c);!i&&s?(f._m[define._n=n]=[u,c],Function(o)(),define._n=\"\"):t(1)}};try{a.send()}catch(c){t(c)}}else f.fail(n,r,o)}var f=this,i=f.urls(n,r);e=e||r,f._m[n]||(f._m[n]=[],t())}};";
+	// JS code for the seed
+	var jsSeedCore = "!function(r){function n(){for(var n,o=0;n=i[o];o++){var e=n[0];if(!e||t[e]){for(var u,c=n[1],h=n[2],v=[],_=0;_<c.length;_++)v[_]=a[u=c[_]],n=u in a&&n,t[u]||(o=t[u]=-1);n&&(i.splice(o,1),h=\"function\"==typeof h?h.apply(r,v):h,e&&(a[e]=h),o=-1)}}f._d&&f._d()}var o=(r.require=function(r,o){if(o){for(var i=0;i<r.length;i++)t[r[i]]=1;return f(0,r,o)}if(t[r]=1,f._m[r]||n(),r in f._m)return f._m[r];throw r},0),f=r.define=function(r,t,a){r&&r+\"\"!==r?(a=t||r,t=t?r:[],r=f._n||\"_anon\"+o++):a||(a=t,t=[]),i.push([r,t,a]),n()},t=f._r={},i=f._p=[],a=f._m={};f.amd={caution:\"0.6.0\"}}(this);var sha256=function r(n){function o(r,n){return r>>>n|r<<32-n}for(var f,t,i=Math.pow,a=i(2,32),e=\"length\",u=\"\",c=[],h=8*n[e],v=r.h=r.h||[],_=r.k=r.k||[],l=_[e],p={},s=2;64>l;s++)if(!p[s]){for(f=0;313>f;f+=s)p[f]=s;v[l]=i(s,.5)*a|0,_[l++]=i(s,1/3)*a|0}for(n+=\"\\x80\";n[e]%64-56;)n+=\"\\x00\";for(f=0;f<n[e];f++){if(t=n.charCodeAt(f),t>>8)return;c[f>>2]|=t<<(3-f)%4*8}for(c[c[e]]=h/a|0,c[c[e]]=h,t=0;t<c[e];){var d=c.slice(t,t+=16),m=v;for(v=v.slice(0,8),f=0;64>f;f++){var g=d[f-15],k=d[f-2],w=v[0],y=v[4],S=v[7]+(o(y,6)^o(y,11)^o(y,25))+(y&v[5]^~y&v[6])+_[f]+(d[f]=16>f?d[f]:d[f-16]+(o(g,7)^o(g,18)^g>>>3)+d[f-7]+(o(k,17)^o(k,19)^k>>>10)|0),q=(o(w,2)^o(w,13)^o(w,22))+(w&v[1]^w&v[2]^v[1]&v[2]);v=[S+q|0].concat(v),v[4]=v[4]+S|0}for(f=0;8>f;f++)v[f]=v[f]+m[f]|0}for(f=0;8>f;f++)for(t=3;t+1;t--){var x=v[f]>>8*t&255;u+=(16>x?0:\"\")+x.toString(16)}return u};";
+	var jsSeedCaution = "define._c={_m:{},fail:function(e,n){alert(\"Missing safe module: \"+e+\"\\n\"+n.join(\"\\n\"))},urls:function(){return[]},load:function(e,n,t){function r(f){if(i.length){var o=new XMLHttpRequest,s=i.shift();o.open(\"GET\",s),o.onreadystatechange=function(){if(o.readyState>3){for(var n,i=o.status/100^2,f=o.responseText.replace(/\\r/g,\"\"),c=i||sha256(encodeURI(f).replace(/%../g,function(e){return String.fromCharCode(\"0x\"+e[1]+e[2]-0)})),u=0;n=t.pop();)u|=eval(\"/^\"+n+\"/\").test(c);!i&&u?(a._m[define._n=e]=[s,c],Function(f)(),define._n=\"\"):r(1)}};try{o.send()}catch(c){r(c)}}else a.fail(e,n,f)}var a=this,i=a.urls(e,n);t=t||n,a._m[e]||(a._m[e]=[],r())}};";
 
 	// Evaluate the seed (we need sha256() anyway), but we don't replace define() unless we need to
-	var func = new Function(inlineJs + 'return {define: define, sha256: sha256};');
+	var func = new Function(jsSeedCore + jsSeedCaution + 'return {define: define, sha256: sha256};');
 	var result = func.call(global);
 	
 	// Set up the global "define" if it doesn't already exist
@@ -11,7 +12,7 @@
 		define = global.define = result.define;
 	}
 	// Extract the seed - we keep existing definitions for _m, urls(), and fail(), but everything else is defined here
-	var caution = define._c; // Yeah, that's a bit bad
+	var caution = define._c || {};
 	
 	var sha256 = result.sha256;
 	function sha256unicode(text) {
@@ -47,14 +48,14 @@
 		isSafe = isSafe || caution.isSafe;
 		if (typeof isSafe === 'string' || typeof isSafe === 'object') {
 			var hashes = [].concat(isSafe);
-			isSafe = function (text, hash) {
+			isSafe = function (text, hash, url) {
 				for (var i = 0; i < hashes.length; i++) {
 					if (hash.substring(0, hashes[i].length) == hashes[i]) return hash;
 				}
 				return false;
 			};
 		} else if (isSafe === true) {
-			isSafe = function (text, hash) {
+			isSafe = function (text, hash, url) {
 				return hash;
 			};
 		}
@@ -66,7 +67,7 @@
 				var hash;
 				if (request.status < 200 || request.status >= 300) {
 					callback(new Error('Response code not OK: ' + request.status));
-				} else if (hash = isSafe(content, sha256unicode(content))) {
+				} else if (hash = isSafe(content, sha256unicode(content), url)) {
 					callback(null, content, hash);
 				} else {
 					callback(new Error('Content was not safe'));
@@ -190,20 +191,20 @@
 	}
 	*/
 	
-	caution.load = function (name, versions, noCache) {
+	caution.load = function (name, versions, isSafe) {
 		if (caution._m[name]) return;
 		caution._m[name] = [];
 
 		versions = versions ? [].concat(versions) : [];
 
-		var options = noCache ? [] : cacheLoadFunctions.slice(0);
+		var options = cacheLoadFunctions.slice(0);
 		function next() {
 			if (options.length) {
 				// Try alternative fetching functions first
 				var func = options.shift();
-				func(name, versions, function (error, js, hash) {
-					if (!error && (hash = caution.isSafe(js, hash))) {
-						loadModuleJs(name, js, hash, null);
+				func(name, versions, function (error, js, hash, url) {
+					if (!error && (hash = caution.isSafe(js, hash, url || null))) {
+						loadModuleJs(name, js, hash, url || null);
 					} else {
 						next();
 					}
@@ -211,7 +212,7 @@
 			} else {
 				// Fetch via AJAX
 				var urls = caution.urls(name, versions);
-				caution.getFirst(urls, null, function (error, js, hash, url) {
+				caution.getFirst(urls, isSafe || null, function (error, js, hash, url) {
 					if (error) {
 						if (!define._m[name]) {
 							caution.fail(name, versions);
@@ -271,18 +272,18 @@
 	};
 	
 	var validationFunctions = [];
-	caution.isSafe = function (text, hash) {
+	caution.isSafe = function (text, hash, url) {
 		hash = hash || sha256unicode(text);
 		for (var i = 0; i < validationFunctions.length; i++) {
 			var func = validationFunctions[i];
-			if (func(text, hash)) return hash;
+			if (func(text, hash, url)) return hash;
 		}
 		return false;
 	};
 	caution.addSafe = function (func) {
 		if (typeof func !== 'function') {
 			var hashes = [].concat(func); // array of hashes
-			func = function (text, hash) {
+			func = function (text, hash, url) {
 				for (var i = 0; i < hashes.length; i++) {
 					if (hash.substring(0, hashes[i].length) == hashes[i]) return true;
 				}
@@ -291,10 +292,18 @@
 		}
 		validationFunctions.push(func);
 	};
-	caution.addSafe(caution.hashes || []);
 	
 	caution.dataUrl = function (config, customCode) {
-		var html = '<!DOCTYPE html><html><body><script>' + caution.inlineJs(config, customCode) + '</script></body></html>';
+		customCode = config.init || '';
+		if (typeof customCode === 'object') {
+			var vars = [];
+			for (var key in customCode) {
+				vars.push(key + '=' + JSON.stringify(customCode[key]));
+			}
+			customCode = 'var ' + vars.join(',') + ';';
+		}
+
+		var html = '<!DOCTYPE html><html><body><script>' + caution.inlineJs(config) + '</script><script id="init">' + customCode + '</script></body></html>';
 		
 		if (typeof btoa === 'function') {
 			return 'data:text/html;base64,' + btoa(html);
@@ -303,38 +312,17 @@
 		}
 	};
 	
-	caution.inlineJs = function (config, customCode) {
-		var js = inlineJs;
-		js = js.replace(/urls\:[^\}]*?\}/, function (def) {
+	caution.inlineJs = function (config) {
+		var customCaution = jsSeedCaution.replace(/urls\:[^\}]*?\}/, function (def) {
 			var code = config.paths.map(templateToCode);
 			return 'urls:function(m){return[].concat(' + code.join(',') + ')}';
 		});
-		js = js.replace(/return VERIFICATION\((.*?)\)/, function (block, hashVar) {
-			var hashes = config.hashes || [];
-			var code = hashes.map(function (hash) {
-				hash = hash.toLowerCase().replace(/[^0-9a-f]/g, '');
-				return '/' + hash + '/.test(' + hashVar + ')';
-			}).join('||');
-			if (code) {
-				return 'return' + code;
-			} else {
-				return 'return 0';
-			}
-		});
+		var js = jsSeedCode + customCaution;
 		if (config.DEBUG) {
 			js += 'define._c.DEBUG=true;';
 		}
 		for (var key in config.load) {
-			js += 'define._c._init(' + JSON.stringify(key) + ',' + JSON.stringify([].concat(config.load[key])) + ');';
-		}
-		
-		customCode = customCode || '';
-		if (typeof customCode === 'object') {
-			var vars = [];
-			for (var key in customCode) {
-				vars.push(key + '=' + JSON.stringify(customCode[key]));
-			}
-			customCode = 'var ' + vars.join(',') + ';';
+			js += 'define._c.load(' + JSON.stringify(key) + ',' + JSON.stringify([].concat(config.load[key])) + ');';
 		}
 		return js + customCode;
 	};
@@ -353,7 +341,7 @@
 	
 	var knownModules = {};
 	var missingHandlers = [];
-	caution.missingModules = function (func) {
+	caution.missing = function (func) {
 		if (!func) {
 			var result = [];
 			for (var key in knownModules) {
@@ -363,7 +351,7 @@
 			return result;
 		} else {
 			asap(function () {
-				var missing = caution.missingModules();
+				var missing = caution.missing();
 				for (var i = 0; i < missing.length; i++) {
 					if (func(missing[i])) {
 						// Mark as handled
