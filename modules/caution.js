@@ -66,12 +66,15 @@
 				var content = request.responseText.replace(/\r/g, ''); // Normalise for consistent behaviour across webserver OS
 				var hash;
 				if (request.status < 200 || request.status >= 300) {
-					callback(new Error('Response code not OK: ' + request.status));
+					asap(callback, new Error('Response code not OK (' + request.status + '): ' + url));
 				} else if (hash = isSafe(content, sha256unicode(content), url)) {
-					callback(null, content, hash);
+					asap(callback, null, content, hash);
 				} else {
-					callback(new Error('Content was not safe'));
+					asap(callback, new Error('Content was not safe: ' + url));
 				}
+				// Chrome (maybe others?) does weird things when trying to request a file:// resource
+				// It first calls this callback, and *then* throws, so the callback is sent out twice
+				callback = function () {};
 			}
 		};
 		try {
@@ -83,15 +86,18 @@
 	
 	caution.getFirst = function (urls, isSafe, callback) {
 		var i = 0;
-		var errors = [];
+		var errors = [], errorMessages = [];;
 		var url;
 		function next(error, text, hash) {
 			if (!error) return callback(null, text, hash, url);
 
 			errors.push(error);
+			errorMessages.push(error.message);
 			if (i >= urls.length) {
-				error.errors = errors.slice(1);
-				var error = new Error('Error fetching (' + error.errors.length + ' attempts): ' + url);
+				errors.shift();
+				errorMessages.shift();
+				var error = new Error('Error fetching (' + errors.length + ' attempts)\n\t' + errorMessages.join('\n\t'));
+				error.errors = errors;
 				return callback(error);
 			}
 			url = urls[i++];

@@ -29,9 +29,7 @@ require(['caution', 'marked', 'Prism'], function (caution, marked, Prism) {
 		if (error) {
 			text = error.message + '\n\n```' + (error.stack || '(no stack)') + '```';
 		}
-		var html = '<a id="bitbucket" href="https://bitbucket.org/geraintluff/caution.js">view on BitBucket</a>';
-		html += marked(text, {gfm: true, sanitize: true});
-		contentDiv.innerHTML = html
+		contentDiv.innerHTML = marked(text, {gfm: true, sanitize: true});
 		Prism.highlightAll();
 	});
 });
