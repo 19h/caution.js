@@ -37,9 +37,9 @@ Hash values are SHA-256 hashes, written as hexadecimal.  When comparing hashes, 
 
 **Warning:** fetched resources have newlines normalised to `\n` (Unix) before calculating the hash.
 
-### `caution.load(moduleName, ?versions)`
+### `caution.load(moduleName, ?versions, ?validation)`
 
-Loads a module, checking `caution.isSafe(moduleSource)` before executing.
+Loads a module.  `validation` is validation criteria (anything suitable for `caution.addSafe()`), and defaults to `caution.isSafe()` if omitted.
 
 ### `caution.loadShim(moduleName, ?versions, ?returnValue, ?dependencies)`
 
@@ -100,9 +100,9 @@ This returns a `data:` URL for a secure-boot HTML page.  `config` must be an obj
 
 If present, `customCode` must be a string (JavaScript code), or an object that will be converted into global variables (e.g. `{globalState: 12345}`).
 
-### `caution.inlineJs(config, ?customCode)`
+### `caution.inlineJs(config)`
 
-Like `caution.dataUrl()`, except it returns just the inline JS instead of a `data:` URL.
+Returns the seed code (standard definitions plus generated loading instructions).
 
 ### `caution.moduleHash(?moduleName)`
 
@@ -110,7 +110,7 @@ This returns the hash value for the currently-loaded version of a given module.
 
 If `moduleName` is omitted, it returns a map from all known modules to their hashes.
 
-### `caution.missingModules(?handler)`
+### `caution.missing(?handler)`
 
 If no handler is supplied, this returns a list of all module names that have not yet been resolved.  If a `handler` function is supplied, then it is called when a module is referenced that is not yet defined (including once for all existing missing modules).
 

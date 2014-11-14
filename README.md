@@ -1,86 +1,111 @@
-# caution.js - a module loader for tamper-proof websites
+# caution.js - a module loader for tamper-proof web apps
 
-Caution.js is a module loader, making it easy to have web web-apps which:
+This project provides a module loader capable of performing cryptographic verification.  It can also generate "seed" code to bootstrap this verification from a data URL.
 
-* perform secure verification of their own resources (e.g. JS/CSS)
-* use fallback locations if verification fails
+Code is on [BitBucket](https://bitbucket.org/geraintluff/caution.js).  Full API docs are [here](doc/api.md).  There are some tests (mostly for `define()` and `require()`) in the `test/` directory of the repo.
 
-Asynchronous Module Definition syntax (`define()`) is supported initially, but support for CommonJS modules (Node.js syntax) is being developed, and ES6 module support is planned.
+## What do you mean "tamper-proof"?  Don't we already have HTTPS?
 
-Code is on [BitBucket](https://bitbucket.org/geraintluff/caution.js).  API docs are [here](doc/api.md).  There are some tests (mostly for `define()`/`require()`) in the `test/` directory of the repo.
+Web pages (normally) load all their resources (HTML/JavaScript/CSS etc.) from a remote server.  HTTPS can secure the connection to avoid modification by a third party - but you still have to trust the remote server to give you the right resources.
 
-## Motivation and principles
+Being "tamper-proof" means that there is enough information stored on the user's computer (called the "seed" here) to perform cryptographic verification of the resources being loaded from the remote server.
 
-### For some applications, securing the connection is not enough.
+### Why would I want a tamper-proof site?
 
-If your web-app makes promises about security or privacy (e.g. "we never see unencrypted content"), then users might want to know when the behaviour of the web-app changes. What if one of the servers is compromised, and starts serving bad content? What if you have a rogue sysadmin?
+If a web-app makes promises about security or privacy (e.g. "we never see unencrypted content"), then users might want to know when the behaviour of the web-app changes. What if somebody gains access to your server, and swaps your scripts out for malicious replacements that leak your secrets?
 
-### To monitor the server's content, you can't start with what the server gives you
+A tamper-proof website lets your users store a version of the site they believe to be safe.  This starts as a "seed" which can be stored in a browser bookmark, shared as a link, or downloaded as an HTML file.  If the remote server changes the resources it provides, users can be notified.
 
-If your starting-point is a web-page that the server gives you, you can't trust any verification that page performs because it might already be broken.  However, if you start from a "known-good" HTML file, you can bootstrap secure verification of resources from there.
+## Why a module loader?
 
-### Data URLs are a neat place to store a secure starting-page
+Modern web-apps use a lot of code written by other people (in the form of modules), in order to make the actual app-specific code quite small.  These modules are managed by a module loader, which is responsible for fetching all the code and executing it in the correct order.
 
-A Data URL is a URL that contains its own content, e.g. [`data:text/html,Hello%20<h1>hello</h1>%20hello`](data:text/html,Hello%20<h1>hello</h1>%20hello).
-All modern browsers support these, and they can be bookmarked like any other URL - this means users can keep the "known-good" HTML in their bookmarks without downloading anything.
+One goal of this project is that if verification fails, the app should be able to look in alternative locations for the resources it needs (e.g. Content Delivery Networks).  To do this, we need a module loader that understands about fallback locations and cryptographic verification.
 
-### There should be fallback locations for resources/modules
+### AMD / CommonJS / ...
 
-A failed verification should not break everything - ideally there should be more than one place to look for resources, and the option for the user to supply a location themselves without compromising security.
+There are multiple module formats, the most common at the moment being CommonJS (like Node.js/Browserify) and Asynchronous Module Definitions (a.k.a. AMD, unrelated to the chip manufacturer).
 
-## What's in caution.js?
+This project chose AMD as the starting point because its asynchronous nature makes it good for fallback locations.  However, CommonJS support is being developed, and support for ES6 modules is planned.
 
-There are two parts to caution.js:
+### What about bundled dependencies?
 
-* the "inline code" (to be included in the secure starting-page) that loads and verifies an initial set of resources
-* the `caution` module, which allows you to specify security criteria, perform automatic fetching of modules, etc.
+Websites often bundle all their dependencies into a single JavaScript file for performance, and there are helpful tools to do this (such as Browserify).
 
-### The inline code
+There's no reason this shouldn't still be possible - the seed could first attempt fetching everything as a big bundle, and then fall back to fetching individual modules from CDNs.  Making sure caution.js works happily alongside existing tools is a high priority.
 
-The inline code includes:
+## Anatomy of a tamper-proof site
 
-* the [SHA-256 hash function](https://github.com/geraintluff/sha256/blob/gh-pages/sha256.js) (~850 bytes minified)
-* an implementation of AMD's [`define()` and `require()` functions](https://bitbucket.org/geraintluff/caution.js/src/master/src/caution-inline-amd.js) (~580 bytes minified)
-* logic to load/verify an initial set of resources
+The most important part of the site is the seed.  When a user bookmarks this, it will be stored as a Data URL, so it tries to be as small as possible.
 
-This inline code is produced by the `caution` module, so your web apps can always generate new `data:` URLs.
+```html
+<!DOCTYPE html>
+<html>
+	<body>
+		<script>
+			/* Standard seed code, containing
+				- sha256()
+				- define() and require()
+				- module-loading logic */
 
-### The `caution` module
+			/* Generated code, containing
+				- initial list of modules/versions
+				- allowed list of SHA-256 hash values for modules
+				- module search locations */
+		</script>
+		<script id="init">
+			// App code
+			document.title = "Seed loaded";
+		</script>
+	</body>
+</html>
+```
 
-The API for this module can be viewed [here](doc/api.md).
+It's possible to not use the `caution` module at all, by listing all the modules you want individually.  However, a neater approach is to initially just load the `caution` module, and enable automatic fetching.
 
-The goal of this module is to make specifying the security requirements simple, while
+```html
+<script id="init">
+	// configure caution
+	require('caution', function (caution) {
+		var versionHints = {...};
+		var hashes = {...};
+	
+		// Enable auto-fetching
+		caution.missingModules(function (name) {
+			caution.load(name, versionHints[name], hashes[name]);
+		});
+	});
+		
+	// OPTION 1: App logic is in a module, so load it
+	require(['my-app-module'], true);
+	
+	// OPTION 2: App logic is included in seed
+	require('some-module', function (someModule) {...});
+</script>
+```
 
-## Example
+If the `caution` module is fetched in an optimised bundle with the rest of your dependencies, this will still fetch everything in a single block.
+
+### Generating the seed
+
+The seed is generated by the `caution` module:
 
 ```javascript
-// Main loading logic
-//	- this could be included with the inline code, or loaded as one of the initial modules
-require(['caution', 'verify-signature'], function (caution, verifySignature) {
-	caution.addUrls([
-		"http://my-site/modules/{}.js",
-		"http://backup-site/modules/{}.js",
-		{"some-particular-module": "http://..."},
-		function (moduleName, versions} {return [...]}
-	]);
-	
-	// Provide our own safety criteria
-	caution.addSafe(function (text, hash) {
-		if (hash in bigListOfSafeHashes) {
-			return true;
-		}
-		return verifySignature(text, ...);
-	});
-	
-	// Automatically fetch missing modules
-	caution.missingModules(function (moduleName) {
-		caution.load(moduleName);
-	});
-	
-	// Load some initial scripts to get going
-	caution.load('lets-get-this-party-started');
+require(['caution'], function (caution) {
+	var config = {
+		urls: ['http://my-site/modules/{}.js'],
+		modules: {
+			'caution': {
+				sha256: ['8c340b24...'],
+				versions: []
+			}
+		},
+		init: '/* App JS code */ require(["caution"], function (caution) {...}'
+	};
 });
 ```
+
+(Note: if loaded from the seed, the existing init code can be fetched with `document.getElementById("init").textContent`.)
 
 ## Next steps
 
