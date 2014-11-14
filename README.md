@@ -88,7 +88,9 @@ This project is in the early stages of development, so there's a lot left to do.
 
 ### CommonJS and ES6 module support
 
-I started with AMD syntax because the API is straightforward and understood, but the asynchronous nature was a good fit for the behaviour I wanted to test it.  CommonJS syntax is widely used (although many modules support both), and could be made asynchronous by scanning for `require('some-module')` in the code (much like Browserify does).
+I started with AMD syntax because the API is straightforward and understood, but the asynchronous nature is important to the functionality I wanted - apps should be able to fall back to fetching the individual modules from CDNs or other servers if validation fails for the primary set of resources (which could be a single compiled JS file).
+
+However, many people are more used to CommonJS syntax (although often modules support both).  This syntax can still be made asynchronous by scanning for `require('some-module')` in the code (much like Browserify does), but this is much easier if the AMD system is already working.
 
 I'm thinking of adding support for the other module formats as modules themselves - e.g. if you were expecting to use CommonJS modules, your inline code would include `caution-commonjs` as one of the initial modules, and your loading code might look something like:
 
