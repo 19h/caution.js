@@ -5,7 +5,7 @@ Caution.js is a module loader, making it easy to have web web-apps which:
 * perform secure verification of their own resources (e.g. JS/CSS)
 * use fallback locations if verification fails
 
-AMD syntax (`define()`) is supported initially, but support for CommonJS modules is being developed, and ES6 module support is planned.
+Asynchronous Module Definition syntax (`define()`) is supported initially, but support for CommonJS modules (Node.js syntax) is being developed, and ES6 module support is planned.
 
 Code is on [BitBucket](https://bitbucket.org/geraintluff/caution.js).  API docs are [here](doc/api.md).  There are some tests (mostly for `define()`/`require()`) in the `test/` directory of the repo.
 
