@@ -1,6 +1,11 @@
 var fs = require('fs'), path = require('path');
 var uglify = require('uglify-js');
-var sha256 = require('tiny-sha256');
+
+function sha256(code) {
+	var hash = require('crypto').createHash('sha256');
+	hash.update(code);
+	return hash.digest().toString('hex');
+}
 
 var command = process.argv[2];
 var args = process.argv.slice(3);
