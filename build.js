@@ -1,5 +1,6 @@
 var fs = require('fs'), path = require('path');
 var uglify = require('uglify-js');
+var sha256 = require('tiny-sha256');
 
 function minify(input, name) {
 	var minified = uglify.minify(input);
@@ -33,11 +34,12 @@ minifiedInline = minifiedInline.replace('VERSION', JSON.stringify(version));
 fs.writeFileSync(__dirname + '/inline.js', minifiedInline);
 fs.writeFileSync(__dirname + '/inline-seed.js', minifiedSeed);
 
-var main = fs.readFileSync(__dirname + '/src/caution-main.js', {encoding: 'utf-8'});
-main = main.replace('JS_SEED_CAUTION', JSON.stringify(minifiedSeed));
-main = main.replace('JS_SEED_CORE', JSON.stringify(minifiedInline));
-fs.writeFileSync(__dirname + '/modules/caution.js', main);
+var moduleCode = fs.readFileSync(__dirname + '/src/caution-main.js', {encoding: 'utf-8'});
+moduleCode = moduleCode.replace('JS_SEED_CAUTION', JSON.stringify(minifiedSeed));
+moduleCode = moduleCode.replace('JS_SEED_CORE', JSON.stringify(minifiedInline));
+fs.writeFileSync(__dirname + '/modules/caution.js', moduleCode);
 
+/**** Assemble list of tests ****/
 function walkDirectory(dir, prefix, filterFunction) {
 	var combined = path.join(prefix || '', dir);
 	var entries = fs.readdirSync(combined);
@@ -55,7 +57,7 @@ function walkDirectory(dir, prefix, filterFunction) {
 				result.push(entry.replace(/\\/g, '/'));
 			}
 		}
-	})
+	});
 	return result;
 }
 
@@ -64,3 +66,42 @@ var testList = walkDirectory('tests', __dirname + '/test', function (filename, i
 });
 console.log('found ' + testList.length + ' tests');
 fs.writeFileSync(__dirname + '/test/test-list.json', JSON.stringify(testList, null, '\t'));
+
+/**** other commands ****/
+
+var command = process.argv[2];
+var args = process.argv.slice(3);
+
+if (command === 'release') {
+	var nextVersion = args[0] || version.replace(/\.[^.]+$/, function (finalComponent) {
+		return '.' + (parseInt(finalComponent.substring(1)) + 1);
+	});
+	
+	['bower.json', 'package.json'].forEach(function (packageFile) {
+		packageFile = path.join(__dirname, packageFile);
+		var json = fs.readFileSync(packageFile, {encoding: 'utf-8'});
+		json = json.replace(/\"version\"\s*\:\s[^,]+/, '"version": ' + JSON.stringify(nextVersion));
+		fs.writeFileSync(packageFile, json);
+	});
+	var moduleFile = __dirname + '/releases/caution-' + nextVersion + '.js';
+	fs.writeFileSync(moduleFile, moduleCode);
+	var moduleMinFile = __dirname + '/releases/caution-' + nextVersion + '.min.js';
+	var minifiedModuleCode = minify([moduleFile], 'main module');
+	fs.writeFileSync(moduleMinFile, minifiedModuleCode);
+	
+	// Add hashes
+	var releases = {};
+	try {
+		release = JSON.parse(fs.readFileSync(__dirname + '/releases/releases.json', {encoding: 'utf-8'}));
+	} catch (e) {
+		console.error('releases/releases.json not found: creating new one');
+	}
+	releases[nextVersion] = [sha256(moduleCode.replace(/\n\r/g, '\n')), sha256(minifiedModuleCode.replace(/\n\r/g, '\n'))];
+	fs.writeFileSync(__dirname + '/releases/releases.json', JSON.stringify(releases, null, '\t'));
+	
+	require('child_process').exec('git add releases/');
+	
+	console.log('released version: ' + nextVersion);
+} else {
+	console.log('(working version: ' + version + ')');
+}
