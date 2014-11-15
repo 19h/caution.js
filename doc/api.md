@@ -41,12 +41,6 @@ Hash values are SHA-256 hashes, written as hexadecimal.  When comparing hashes, 
 
 Loads a module.  `validation` is validation criteria (anything suitable for `caution.addSafe()`), and defaults to `caution.isSafe()` if omitted.
 
-### `caution.loadShim(moduleName, ?versions, ?returnValue, ?dependencies)`
-
-For modules that don't support AMD syntax, this wraps them in a `define()` call.
-
-The optional `returnValue` argument specifies JavaScript code to return at the end (considered to be the result of loading the module).  This defaults to the value of `moduleName`.
-
 ### `caution.get(url, validation, function (error, text, hash) {...})`
 
 This is a basic text-only method to fetch resources.  If the fetched version is safe, then the content is returned (without error) - otherwise, a truthy value is returned as the error.

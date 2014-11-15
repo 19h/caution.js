@@ -4,12 +4,13 @@
 	var jsSeedCaution = JS_SEED_CAUTION;
 
 	// Evaluate the seed (we need sha256() anyway), but we don't replace define() unless we need to
-	var func = new Function(jsSeedCore + jsSeedCaution + 'return {define: define, sha256: sha256};');
-	var result = func.call(global);
+	var func = new Function(jsSeedCore + 'var define = this.define;\n' + jsSeedCaution + 'return {define: this.define, require: this.require, sha256: sha256};');
+	var result = func.call({});
 	
 	// Set up the global "define" if it doesn't already exist
 	if (typeof define !== 'function' || !define.amd || !define.amd.caution) {		
 		define = global.define = result.define;
+		require = global.require = result.require;
 	}
 	// Extract the seed - we keep existing definitions for _m, urls(), and fail(), but everything else is defined here
 	var caution = define._c || {};
@@ -157,10 +158,20 @@
 				};
 				document.head.appendChild(script);
 			});
+		} else if (caution.DEBUG) {
+			var code = '(function () {\ndefine._oldName = define._n;\n';
+			code += js;
+			code += '\n;define._n = define._oldName;\n})();';
+			var script = document.createElement('script');
+			script.src = 'data:application/javascript,' + encodeURI(code);
+			script.onload = function () {
+				caution._m[name] = [url, hash];
+			};
+			document.head.appendChild(script);
 		} else {
+			caution._m[name] = [url, hash];
 			var oldName = define._n;
 			define._n = name;
-			caution._m[name] = [url, hash];
 			Function(js)();
 			define._n = oldName;
 		}
@@ -236,23 +247,21 @@
 		next();
 	};
 	
-	caution.loadShim = function (name, versions, returnValue, deps) {
-		versions = versions ? [].concat(versions) : [];
-		var urls = caution.urls(name, versions);
-		caution._m[name] = name;
-		deps = deps || [];
-
-		caution.getFirst(urls, null, function (error, js, hash, url) {
-			if (error) return caution.fail(name, versions);
-
-			caution._m[name] = [url, hash];
-			
+	caution.addShim = function (name, transformFunction) {
+		transformFunction = transformFunction || function (moduleName, js) {
+			var returnCode = moduleName.replace(/[^a-zA-Z]+([a-zA-Z])?/g, function (match, letter) {
+				return letter.toUpperCase();
+			});
 			// Hide define(), in case the code tries to call it
-			code = 'var define = undefined;\n';
+			code = 'define(' + JSON.stringify(moduleName) + ', [], function () {\n';
+			code += 'var define = undefined;\n';
 			code += js;
-			code += 'return ' + (returnValue || name) + ';';
-			var func = Function.apply(null, deps.concat(code));
-			define(name, deps, func);
+			code += '\nreturn ' + returnCode + ';\n';
+			code += '});';
+			return code;
+		};
+		caution.addLoadTransform(function (moduleName, code) {
+			if (moduleName === name) return transformFunction(moduleName, code);
 		});
 	};
 	
@@ -320,17 +329,20 @@
 	
 	caution.inlineJs = function (config) {
 		var customCaution = jsSeedCaution.replace(/urls\:[^\}]*?\}/, function (def) {
-			var code = config.paths.map(templateToCode);
+			var code = config.urls.map(templateToCode);
 			return 'urls:function(m){return[].concat(' + code.join(',') + ')}';
 		});
-		var js = jsSeedCode + customCaution;
+		var js = jsSeedCore + customCaution;
 		if (config.DEBUG) {
-			js += 'define._c.DEBUG=true;';
+			js += 'define._c.DEBUG=1;';
 		}
-		for (var key in config.load) {
-			js += 'define._c.load(' + JSON.stringify(key) + ',' + JSON.stringify([].concat(config.load[key])) + ');';
+		for (var moduleName in config.modules) {
+			var entry = config.modules[moduleName];
+			var versions = entry.versions ? [].concat(entry.versions) : [];
+			var sha256 = [].concat(entry.sha256);
+			js += 'define._c.load(' + JSON.stringify(moduleName) + ',' + JSON.stringify(versions) + ',' + JSON.stringify(sha256) + ');';
 		}
-		return js + customCode;
+		return js;
 	};
 	
 	caution.moduleHash = function (moduleName) {

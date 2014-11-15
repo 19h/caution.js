@@ -103,5 +103,5 @@ if (command === 'release') {
 	
 	console.log('released version: ' + nextVersion);
 } else {
-	console.log('(working version: ' + version + ')');
+	console.log('(latest release: ' + version + ')');
 }

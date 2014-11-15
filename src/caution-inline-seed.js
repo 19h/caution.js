@@ -2,7 +2,9 @@
 define._c = {
 	_m: {}, // Existing modules, (name -> [url, hash]) - pending modules should have truthy values
 	fail: function (name, versions, error) {
-		alert('Missing safe module: ' + name + '\n' + versions.join('\n'));
+		var message ='Missing safe module: ' + name + '\n' + versions.join('\n');
+		alert(message);
+		throw new Error(message);
 	},
 	urls: function (moduleName, versions, error) {
 		return [];

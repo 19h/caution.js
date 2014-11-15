@@ -1,6 +1,6 @@
 {
   "name": "caution",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Secure AMD module loader for tamper-proof web apps",
   "main": "index.js",
   "scripts": {

@@ -14,20 +14,24 @@ require(['caution'], function (caution) {
 			
 			// We now have the hashed versions of our initial two modules
 			var config = {
-				paths: modulePaths,
-				load: {
-					'caution': cautionHash,
-					'main-page': mainPageHash
+				urls: modulePaths,
+				modules: {
+					'caution': {
+						sha256: cautionHash
+					},
+					'main-page': {
+						sha256: mainPageHash
+					}
 				},
-				DEBUG: caution.DEBUG || /#(.*&)*debug($|&)/.test(location.href)
+				DEBUG: caution.DEBUG || /#(.*&)?debug($|&)/.test(location.href)
 			};
 
 			if (/#redirect/.test(location.href)) {
-				var url = caution.dataUrl(config, {baseUrl: baseUrl});
+				var url = caution.dataUrl(config, 'var baseUrl=' + JSON.stringify(baseUrl));
 				return location.replace(url);
 			}
 			
-			var js = caution.inlineJs(config, {baseUrl: baseUrl});
+			var js = caution.inlineJs(config);
 			console.log(js);
 			Function(js)();
 		});
