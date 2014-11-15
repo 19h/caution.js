@@ -121,7 +121,7 @@ var seed = caution.dataUrl({
 });
 ```
 
-This means the bundle is fetched first if available (to load `caution), and no further requests are needed.  If the bundle is unavailable (and so `caution` is found from elsewhere), then it will fall back to fetching the modules individually.
+This means the bundle is fetched first if available (to load `caution`), and no further requests are needed.  If the bundle is unavailable (and so `caution` is found from elsewhere), then it will fall back to fetching the modules individually.
 
 ## Next steps
 
