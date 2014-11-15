@@ -1,15 +1,18 @@
 <script src="modules/caution.js"></script>
 <script>
-var baseUrl = location.href.replace(/[^\/]+$/, '');
+var baseUrl = location.href.replace(/[#?].*/, '').replace(/[^\/]+$/, '');
 
-var modulePaths = [{'main-page': baseUrl + 'main-page.js'}, baseUrl + 'modules/{}.js'];
+var modulePaths = [{'main-page': baseUrl + 'main-page.js'}, baseUrl + 'releases/{m}-{v}.js'];
 
 require(['caution'], function (caution) {
 	caution.addUrls(modulePaths);
 	
-	caution.getFirst(caution.urls('caution'), true, function (error, text, cautionHash) {
+	caution.get(baseUrl + 'releases/releases.json', true, function (error, text) {
 		if (error) throw error;
-		caution.getFirst(caution.urls('main-page'), true, function (error, text, mainPageHash) {
+		var releases = JSON.parse(text);
+		var cautionHashes = releases[define.amd.caution];
+		
+		caution.get(baseUrl + 'main-page.js', true, function (error, text, mainPageHash) {
 			if (error) throw error;
 			
 			// We now have the hashed versions of our initial two modules
@@ -17,16 +20,17 @@ require(['caution'], function (caution) {
 				urls: modulePaths,
 				modules: {
 					'caution': {
-						sha256: cautionHash
+						sha256: cautionHashes,
+						versions: [define.amd.caution]
 					},
 					'main-page': {
-						sha256: mainPageHash
+						sha256: [mainPageHash]
 					}
 				},
 				DEBUG: caution.DEBUG || /#(.*&)?debug($|&)/.test(location.href)
 			};
 
-			if (/#redirect/.test(location.href)) {
+			if (/#(.*&)?redirect($|&)/.test(location.href)) {
 				var url = caution.dataUrl(config, 'var baseUrl=' + JSON.stringify(baseUrl));
 				return location.replace(url);
 			}
@@ -37,5 +41,4 @@ require(['caution'], function (caution) {
 		});
 	});
 });
-
 </script>

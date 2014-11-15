@@ -2,16 +2,19 @@ var fs = require('fs'), path = require('path');
 var uglify = require('uglify-js');
 var sha256 = require('tiny-sha256');
 
+var command = process.argv[2];
+var args = process.argv.slice(3);
+
 function minify(input, name) {
 	var minified = uglify.minify(input);
 
-	/* Hack for debugging
-	minified = {
-		code: input.map(function (f) {
-			return fs.readFileSync(f, {encoding: 'utf-8'});
-		}).join('\n\n')
-	};
-	//*/
+	if (command === 'debug') {
+		minified = {
+			code: input.map(function (f) {
+				return fs.readFileSync(f, {encoding: 'utf-8'});
+			}).join('\n\n')
+		};
+	}
 
 	var code = minified.code;
 	code = code.replace(/\u0080/g, '\\x80').replace(/EVAL/g, 'eval').replace(/FUNCTION/g, 'Function');
@@ -38,6 +41,7 @@ var moduleCode = fs.readFileSync(__dirname + '/src/caution-main.js', {encoding: 
 moduleCode = moduleCode.replace('JS_SEED_CAUTION', JSON.stringify(minifiedSeed));
 moduleCode = moduleCode.replace('JS_SEED_CORE', JSON.stringify(minifiedInline));
 fs.writeFileSync(__dirname + '/modules/caution.js', moduleCode);
+console.log('module is ' + moduleCode.length + ' bytes');
 
 /**** Assemble list of tests ****/
 function walkDirectory(dir, prefix, filterFunction) {
@@ -68,9 +72,6 @@ console.log('found ' + testList.length + ' tests');
 fs.writeFileSync(__dirname + '/test/test-list.json', JSON.stringify(testList, null, '\t'));
 
 /**** other commands ****/
-
-var command = process.argv[2];
-var args = process.argv.slice(3);
 
 if (command === 'release') {
 	var nextVersion = args[0] || version.replace(/\.[^.]+$/, function (finalComponent) {

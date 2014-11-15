@@ -34,9 +34,9 @@ define._c = {
 								return String.fromCharCode('0x' + part[1] + part[2] - 0);
 							}));
 							var match = 0;
-							var expected;
-							while (expected = hashes.pop()) {
-								match |= (EVAL('/^' + expected + '/').test(hash));
+							var i = 0;
+							while (hashes[i]) {
+								match |= (EVAL('/^' + hashes[i++] + '/').test(hash));
 							}
 						
 							if (!statusNotOK && match) {

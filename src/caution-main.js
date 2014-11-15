@@ -33,9 +33,19 @@
 	// Converts a string/object (for URLs) into a JS expression (string or array result)
 	function templateToCode(entry) {
 		if (typeof entry === 'string') {
-			return '[' + entry.split(/\{.*?\}/g).map(function (part) {
-				return JSON.stringify(part);
-			}).join('+m+') + ']';
+			if (/\{v\}/.test(entry)) {
+				var code = 'v.map(function(v){return';
+				code += JSON.stringify(entry).replace(/\{(.*?)\}/g, function (match, variable) {
+					if (variable === 'v') return '"+v+"';
+					return '"+m+"';
+				});
+				code += '})';
+				return code;
+			} else {
+				return '[' + entry.split(/\{.*?\}/g).map(function (part) {
+					return JSON.stringify(part);
+				}).join('+m+') + ']';
+			}
 		} else {
 			return JSON.stringify(entry) + '[m]||[]';
 		}
@@ -272,15 +282,16 @@
 		for (var i = 0; i < funcs.length; i++) {
 			if (typeof funcs[i] !== 'function') {
 				// Might as well use the code-generation logic, as it's already defined
-				funcs[i] = new Function('m', 'h', 'return [].concat(' + templateToCode(funcs[i]) + ')');
+				funcs[i] = new Function('m', 'v', 'return [].concat(' + templateToCode(funcs[i]) + ')');
 			}
 		}
 		funcs.unshift(caution.urls); // Old function
-		caution.urls = function (m, h) {
+		caution.urls = function (m, v) {
+			v = v || [];
 			var result = [];
 			for (var i = 0; i < funcs.length; i++) {
 				var func = funcs[i];
-				result = result.concat(func(m, h));
+				result = result.concat(func(m, v));
 			}
 			return result;
 		};
@@ -330,7 +341,7 @@
 	caution.inlineJs = function (config) {
 		var customCaution = jsSeedCaution.replace(/urls\:[^\}]*?\}/, function (def) {
 			var code = config.urls.map(templateToCode);
-			return 'urls:function(m){return[].concat(' + code.join(',') + ')}';
+			return 'urls:function(m,v){return[].concat(' + code.join(',') + ')}';
 		});
 		var js = jsSeedCore + customCaution;
 		if (config.DEBUG) {
