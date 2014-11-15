@@ -30,9 +30,7 @@ This project chose AMD as the starting point because its asynchronous nature mak
 
 ### What about bundled dependencies?
 
-Websites often bundle all their dependencies into a single JavaScript file for performance, and there are helpful tools to do this (such as Browserify).
-
-There's no reason this shouldn't still be possible - the seed could first attempt fetching everything as a big bundle, and then fall back to fetching individual modules from CDNs.  Making sure caution.js works happily alongside existing tools is a high priority.
+See "Using dependency bundles" below.
 
 ## Anatomy of a tamper-proof site
 
@@ -61,7 +59,7 @@ The most important part of the site is the seed.  When a user bookmarks this, it
 </html>
 ```
 
-It's possible to not use the `caution` module at all, by listing all the modules you want individually.  However, a neater approach is to initially just load the `caution` module, and enable automatic fetching.
+It's possible to not use the `caution` module at all, by listing all the modules you want individually.  However, a neat approach is to initially just load the `caution` module, and enable automatic fetching:
 
 ```html
 <script id="init">
@@ -71,7 +69,7 @@ It's possible to not use the `caution` module at all, by listing all the modules
 		var hashes = {...};
 	
 		// Enable auto-fetching
-		caution.missingModules(function (name) {
+		caution.missing(function (name) {
 			caution.load(name, versionHints[name], hashes[name]);
 		});
 	});
@@ -80,11 +78,9 @@ It's possible to not use the `caution` module at all, by listing all the modules
 	require(['my-app-module'], true);
 	
 	// OPTION 2: App logic is included in seed
-	require('some-module', function (someModule) {...});
+	require(['some-module'], function (someModule) {...});
 </script>
 ```
-
-If the `caution` module is fetched in an optimised bundle with the rest of your dependencies, this will still fetch everything in a single block.
 
 ### Generating the seed
 
@@ -102,10 +98,30 @@ require(['caution'], function (caution) {
 		},
 		init: '/* App JS code */ require(["caution"], function (caution) {...}'
 	};
+	
+	var seed = caution.dataUrl(config);
 });
 ```
 
 (Note: if loaded from the seed, the existing init code can be fetched with `document.getElementById("init").textContent`.)
+
+## Using dependency bundles
+
+Websites often bundle all their dependencies into a single JavaScript file for performance, and there are helpful tools to do this (such as Browserify).  This should still work fine - making sure caution.js works happily with existing tools is obviously a high priority.
+
+The best way to use a bundle at the moment is to list the bundle file as the first location for the `caution` module:
+
+```javascript
+var seed = caution.dataUrl({
+	urls: [{'caution': 'http://my-site/path/to/bundle.js'}, ...];
+	modules: {
+		'caution': {...} // Only list the single dependency
+	},
+	init: '...'
+});
+```
+
+This means the bundle is fetched first if available (to load `caution), and no further requests are needed.  If the bundle is unavailable (and so `caution` is found from elsewhere), then it will fall back to fetching the modules individually.
 
 ## Next steps
 
@@ -123,10 +139,10 @@ I'm thinking of adding support for the other module formats as modules themselve
 require(['caution', 'caution-commonjs'], function (caution, commonJs) {
 	commonJs.addToCaution(caution);
 
-	// Loading logic, as above
+	// Enable auto-loading, as above
 	...
 
-	caution.load('some-commonjs-module');
+	require('some-commonjs-module', true);
 });
 ```
 
@@ -137,3 +153,28 @@ An ES6-compatability module could work similarly, using a shim to transform the 
 I'm not sure on the details, but it seems like it could work, and share much of the API with the AMD/CommonJS loader.
 
 What I'm expecting: the inline code would use the Module Loader API to add the initial security checks.  The `caution` ES6 module could then be loaded to add more sophisticated controls, very similar to the example above.
+
+### Work better with bundles
+
+At the moment, the bundle-trick relies on only having one initial module loaded (`caution`).  If you need multiple modules (e.g. the proposed `caution-es6` for ES6 module support), then the workaround is:
+
+```javascript
+require(['caution'], function (caution) {
+	// We can't enable auto-loading yet, in case it attempts to auto-load an ES6 module
+	// If it is already loaded (e.g. from the bundle) then this does nothing
+	caution.load('caution-es6', [... versions ...], [... hashes ...]);
+	
+	require(['caution-es6'], function (cautionEs6) {
+		// *Now* we can enable auto-loading
+		caution.missing(function (moduleName) {...});
+	});
+});
+```
+
+This could be made better, by adding logic to prevent double-execution, double-fetching or double-hash-calculation.
+
+### Code bundler + Node module
+
+While caution.js should play well with tools like Browserify, it makes sense to be able to bundle things ourselves if we want to.
+
+The output would be a (seed, bundle) pair.  The bundle may include the inline code from the seed as well (it could check for the `id="init"` script before executing).
