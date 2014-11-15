@@ -171,7 +171,7 @@ require(['caution'], function (caution) {
 });
 ```
 
-This could be made better, by adding logic to prevent double-execution, double-fetching or double-hash-calculation.
+This workaround is necessary because otherwise the loader will attempt to fetch both initial modules at once (even though they are both the same file).  This could be made better, by adding logic to prevent double-execution, double-fetching or double-hash-calculation.
 
 ### Code bundler + Node module
 
