@@ -6,7 +6,7 @@ define._c = {
 		alert(message);
 		throw new Error(message);
 	},
-	urls: function (moduleName, versions, error) {
+	urls: function (moduleName, versions) {
 		return [];
 	},
 	load: function (name, versions, hashes) {
@@ -30,16 +30,14 @@ define._c = {
 							var content = request.responseText.replace(/\r/g, ''); // Normalise for consistent behaviour across webserver OS
 
 							// Check validity against supplied hashes
-							var hash = statusNotOK || sha256(encodeURI(content).replace(/%../g, function (part) {
-								return String.fromCharCode('0x' + part[1] + part[2] - 0);
+							var hash = statusNotOK || sha256(encodeURI(content).replace(/%(..)/g, function (part, hexPair) {
+								return String.fromCharCode('0x' + hexPair - 0);
 							}));
-							var match = 0;
-							var i = 0;
-							while (hashes[i]) {
-								match |= (EVAL('/^' + hashes[i++] + '/').test(hash));
-							}
-						
-							if (!statusNotOK && match) {
+							
+							var end = '/.test("' + hash + '")';
+
+							if (!statusNotOK
+								&& EVAL('/^' + hashes.join(end + '|/^') + end)) {
 								// It matches - load it!
 								cautionSeed._m[define._n = name] = [url, hash];
 								FUNCTION(content)();

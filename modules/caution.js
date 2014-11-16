@@ -1,7 +1,7 @@
 (function (global) {
 	// JS code for the seed
 	var jsSeedCore = "!function(r){function n(){for(var n,o=0;n=i[o];o++){var e=n[0];if(!e||t[e]){for(var u,c=n[1],h=n[2],v=[],_=0;_<c.length;_++)v[_]=a[u=c[_]],n=u in a&&n,t[u]||(o=t[u]=-1);n&&(i.splice(o,1),h=\"function\"==typeof h?h.apply(r,v):h,e&&(a[e]=h),o=-1)}}f._d&&f._d()}var o=(r.require=function(r,o){if(o){for(var i=0;i<r.length;i++)t[r[i]]=1;return f(0,r,o)}if(t[r]=1,f._m[r]||n(),r in f._m)return f._m[r];throw r},0),f=r.define=function(r,t,a){r&&r+\"\"!==r?(a=t||r,t=t?r:[],r=f._n||\"_anon\"+o++):a||(a=t,t=[]),i.push([r,t,a]),n()},t=f._r={},i=f._p=[],a=f._m={};f.amd={caution:\"0.7.2\"}}(this);var sha256=function r(n){function o(r,n){return r>>>n|r<<32-n}for(var f,t,i=Math.pow,a=i(2,32),e=\"length\",u=\"\",c=[],h=8*n[e],v=r.h=r.h||[],_=r.k=r.k||[],l=_[e],p={},s=2;64>l;s++)if(!p[s]){for(f=0;313>f;f+=s)p[f]=s;v[l]=i(s,.5)*a|0,_[l++]=i(s,1/3)*a|0}for(n+=\"\\x80\";n[e]%64-56;)n+=\"\\x00\";for(f=0;f<n[e];f++){if(t=n.charCodeAt(f),t>>8)return;c[f>>2]|=t<<(3-f)%4*8}for(c[c[e]]=h/a|0,c[c[e]]=h,t=0;t<c[e];){var d=c.slice(t,t+=16),m=v;for(v=v.slice(0,8),f=0;64>f;f++){var g=d[f-15],k=d[f-2],w=v[0],y=v[4],S=v[7]+(o(y,6)^o(y,11)^o(y,25))+(y&v[5]^~y&v[6])+_[f]+(d[f]=16>f?d[f]:d[f-16]+(o(g,7)^o(g,18)^g>>>3)+d[f-7]+(o(k,17)^o(k,19)^k>>>10)|0),q=(o(w,2)^o(w,13)^o(w,22))+(w&v[1]^w&v[2]^v[1]&v[2]);v=[S+q|0].concat(v),v[4]=v[4]+S|0}for(f=0;8>f;f++)v[f]=v[f]+m[f]|0}for(f=0;8>f;f++)for(t=3;t+1;t--){var x=v[f]>>8*t&255;u+=(16>x?0:\"\")+x.toString(16)}return u};";
-	var jsSeedCaution = "define._c={_m:{},fail:function(e,n){var t=\"Missing safe module: \"+e+\"\\n\"+n.join(\"\\n\");throw alert(t),new Error(t)},urls:function(){return[]},load:function(e,n,t){function r(o){if(i.length){var f=new XMLHttpRequest,s=i.shift();f.open(\"GET\",s),f.onreadystatechange=function(){if(f.readyState>3){for(var n=f.status/100^2,i=f.responseText.replace(/\\r/g,\"\"),o=n||sha256(encodeURI(i).replace(/%../g,function(e){return String.fromCharCode(\"0x\"+e[1]+e[2]-0)})),c=0,u=0;t[u];)c|=eval(\"/^\"+t[u++]+\"/\").test(o);!n&&c?(a._m[define._n=e]=[s,o],Function(i)(),define._n=\"\"):r(1)}};try{f.send()}catch(c){r(c)}}else a.fail(e,n,o)}var a=this,i=a.urls(e,n);t=t||n,a._m[e]||(a._m[e]=[],r())}};";
+	var jsSeedCaution = "define._c={_m:{},fail:function(e,n){var t=\"Missing safe module: \"+e+\"\\n\"+n.join(\"\\n\");throw alert(t),new Error(t)},urls:function(){return[]},load:function(e,n,t){function r(o){if(i.length){var s=new XMLHttpRequest,f=i.shift();s.open(\"GET\",f),s.onreadystatechange=function(){if(s.readyState>3){var n=s.status/100^2,i=s.responseText.replace(/\\r/g,\"\"),o=n||sha256(encodeURI(i).replace(/%(..)/g,function(e,n){return String.fromCharCode(\"0x\"+n-0)})),c='/.test(\"'+o+'\")';!n&&eval(\"/^\"+t.join(c+\"|/^\")+c)?(a._m[define._n=e]=[f,o],Function(i)(),define._n=\"\"):r(1)}};try{s.send()}catch(c){r(c)}}else a.fail(e,n,o)}var a=this,i=a.urls(e,n);t=t||n,a._m[e]||(a._m[e]=[],r())}};";
 
 	// Evaluate the seed (we need sha256() anyway), but we don't replace define() unless we need to
 	var func = new Function(jsSeedCore + 'var define = this.define;\n' + jsSeedCaution + 'return {define: this.define, require: this.require, sha256: sha256};');
@@ -51,11 +51,7 @@
 		}
 	}
 	
-	/**** Methods ****/
-	
-	caution.get = function (url, isSafe, callback) {
-		if (typeof callback[0] === 'string') throw new Error('!!!');
-		var request = new XMLHttpRequest;
+	function safetyFunction(isSafe) {
 		isSafe = isSafe || caution.isSafe;
 		if (typeof isSafe === 'string' || typeof isSafe === 'object') {
 			var hashes = [].concat(isSafe);
@@ -70,6 +66,15 @@
 				return hash;
 			};
 		}
+		return isSafe;
+	}
+	
+	/**** Methods ****/
+	
+	caution.get = function (url, isSafe, callback) {
+		if (typeof callback[0] === 'string') throw new Error('!!!');
+		var request = new XMLHttpRequest;
+		isSafe = safetyFunction(isSafe);
 		
 		request.open("GET", url);
 		request.onreadystatechange = function () {
@@ -169,7 +174,9 @@
 				document.head.appendChild(script);
 			});
 		} else if (caution.DEBUG) {
-			var code = '(function () {\ndefine._oldName = define._n;\n';
+			var code = '(function () {\n';
+			code += 'define._oldName = define._n;\n';
+			code += 'define._n = ' + JSON.stringify(name) + ';\n';
 			code += js;
 			code += '\n;define._n = define._oldName;\n})();';
 			var script = document.createElement('script');
@@ -222,6 +229,8 @@
 		if (caution._m[name]) return;
 		caution._m[name] = [];
 
+		isSafe = safetyFunction(isSafe);
+
 		versions = versions ? [].concat(versions) : [];
 
 		var options = cacheLoadFunctions.slice(0);
@@ -230,7 +239,7 @@
 				// Try alternative fetching functions first
 				var func = options.shift();
 				func(name, versions, function (error, js, hash, url) {
-					if (!error && (hash = caution.isSafe(js, hash, url || null))) {
+					if (!error && (hash = isSafe(js, hash, url || null))) {
 						loadModuleJs(name, js, hash, url || null);
 					} else {
 						next();
@@ -239,7 +248,7 @@
 			} else {
 				// Fetch via AJAX
 				var urls = caution.urls(name, versions);
-				caution.getFirst(urls, isSafe || null, function (error, js, hash, url) {
+				caution.getFirst(urls, isSafe, function (error, js, hash, url) {
 					if (error) {
 						if (!define._m[name]) {
 							caution.fail(name, versions);
@@ -350,7 +359,10 @@
 		for (var moduleName in config.modules) {
 			var entry = config.modules[moduleName];
 			var versions = entry.versions ? [].concat(entry.versions) : [];
-			var sha256 = [].concat(entry.sha256);
+			var sha256 = [].concat(entry.sha256).map(function (hash) {
+				// The inline code actually evals() these, so worth sanitising
+				return hash.toLowerCase().replace(/[^0-9a-f]/g, '');
+			});
 			js += 'define._c.load(' + JSON.stringify(moduleName) + ',' + JSON.stringify(versions) + ',' + JSON.stringify(sha256) + ');';
 		}
 		return js;

@@ -9,7 +9,7 @@
 	<script src="../modules/caution.js"></script>
 	</script src="tests.js"></script>
 	<script>
-	require('caution').DEBUG = true;
+	//require('caution').DEBUG = true;
 	
 	require(['caution'], function (caution) {
 		caution.fail = function (moduleName, versions) {
@@ -66,6 +66,13 @@
 		console.log('acting as parent');
 
 		function executeTestInChild(test, suiteNumber, testNumber, callback) {
+			var suiteMatch = location.href.match(/#(.*&)?suite=([^&]*)(&|$)/);
+			if (suiteMatch) {
+				if (parseFloat(suiteMatch[2]) !== suiteNumber) {
+					return callback(null);
+				}
+			}
+			
 			test.emit('start');
 
 			// Load iFrame, place off-screen and assign to this page

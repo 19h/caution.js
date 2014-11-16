@@ -51,11 +51,7 @@
 		}
 	}
 	
-	/**** Methods ****/
-	
-	caution.get = function (url, isSafe, callback) {
-		if (typeof callback[0] === 'string') throw new Error('!!!');
-		var request = new XMLHttpRequest;
+	function safetyFunction(isSafe) {
 		isSafe = isSafe || caution.isSafe;
 		if (typeof isSafe === 'string' || typeof isSafe === 'object') {
 			var hashes = [].concat(isSafe);
@@ -70,6 +66,15 @@
 				return hash;
 			};
 		}
+		return isSafe;
+	}
+	
+	/**** Methods ****/
+	
+	caution.get = function (url, isSafe, callback) {
+		if (typeof callback[0] === 'string') throw new Error('!!!');
+		var request = new XMLHttpRequest;
+		isSafe = safetyFunction(isSafe);
 		
 		request.open("GET", url);
 		request.onreadystatechange = function () {
@@ -169,7 +174,9 @@
 				document.head.appendChild(script);
 			});
 		} else if (caution.DEBUG) {
-			var code = '(function () {\ndefine._oldName = define._n;\n';
+			var code = '(function () {\n';
+			code += 'define._oldName = define._n;\n';
+			code += 'define._n = ' + JSON.stringify(name) + ';\n';
 			code += js;
 			code += '\n;define._n = define._oldName;\n})();';
 			var script = document.createElement('script');
@@ -222,6 +229,8 @@
 		if (caution._m[name]) return;
 		caution._m[name] = [];
 
+		isSafe = safetyFunction(isSafe);
+
 		versions = versions ? [].concat(versions) : [];
 
 		var options = cacheLoadFunctions.slice(0);
@@ -230,7 +239,7 @@
 				// Try alternative fetching functions first
 				var func = options.shift();
 				func(name, versions, function (error, js, hash, url) {
-					if (!error && (hash = caution.isSafe(js, hash, url || null))) {
+					if (!error && (hash = isSafe(js, hash, url || null))) {
 						loadModuleJs(name, js, hash, url || null);
 					} else {
 						next();
@@ -239,7 +248,7 @@
 			} else {
 				// Fetch via AJAX
 				var urls = caution.urls(name, versions);
-				caution.getFirst(urls, isSafe || null, function (error, js, hash, url) {
+				caution.getFirst(urls, isSafe, function (error, js, hash, url) {
 					if (error) {
 						if (!define._m[name]) {
 							caution.fail(name, versions);
@@ -350,7 +359,10 @@
 		for (var moduleName in config.modules) {
 			var entry = config.modules[moduleName];
 			var versions = entry.versions ? [].concat(entry.versions) : [];
-			var sha256 = [].concat(entry.sha256);
+			var sha256 = [].concat(entry.sha256).map(function (hash) {
+				// The inline code actually evals() these, so worth sanitising
+				return hash.toLowerCase().replace(/[^0-9a-f]/g, '');
+			});
 			js += 'define._c.load(' + JSON.stringify(moduleName) + ',' + JSON.stringify(versions) + ',' + JSON.stringify(sha256) + ');';
 		}
 		return js;
