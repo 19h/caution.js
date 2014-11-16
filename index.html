@@ -27,11 +27,12 @@ require(['caution'], function (caution) {
 						sha256: [mainPageHash]
 					}
 				},
+				init: 'var baseUrl=' + JSON.stringify(baseUrl) + ';',
 				DEBUG: caution.DEBUG || /#(.*&)?debug($|&)/.test(location.href)
 			};
 
 			if (/#(.*&)?redirect($|&)/.test(location.href)) {
-				var url = caution.dataUrl(config, 'var baseUrl=' + JSON.stringify(baseUrl));
+				var url = caution.dataUrl(config);
 				return location.replace(url);
 			}
 			
