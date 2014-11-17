@@ -1,44 +1,77 @@
 var assert = require('chai').assert;
 
 describe('CommonJS support', function () {
-	var caution = require('caution');
-	caution.addLoadTransform(function (moduleName, js) {
-		var code = '(function () {\n';
-		code += 'var module = ' + JSON.stringify({
-			exports: {}
-		}, null, '\t') + ';\n';
-		code += 'var exports = module.exports;\n\n';
-		code += js;
-		code += '\nif (!(' + JSON.stringify(moduleName) + ' in define._m)) {\n';
-		code += '	define(' + JSON.stringify(moduleName) + ', module.exports);\n';
-		code += '}';
-		code += '})();\n';
-		return code;
-	});
 
 	it('can add', function (done) {
-		var caution = require('caution');
-		caution.addLoad(function (name, versions, callback) {
-			if (name === 'A') return callback(null, "module.exports = {a: 'A'};");
-			callback(true);
-		});
+		require(['caution-commonjs'], function (caution) {
+			var caution = require('caution');
+			caution.addLoad(function (name, versions, callback) {
+				if (name === 'A') return callback(null, "module.exports = {a: 'A'};");
+				callback(true);
+			});
 		
-		require(['A'], function (A) {
-			assert.equal(A.a, 'A');
-			done();
+			require(['A'], function (A) {
+				assert.equal(A.a, 'A');
+				done();
+			});
 		});
 	});
 	
 	it('doesn\'t break AMD', function (done) {
-		var caution = require('caution');
-		caution.addLoad(function (name, versions, callback) {
-			if (name === 'A') return callback(null, "define([], {a: 'A'});");
-			callback(true);
-		});
+		require(['caution-commonjs'], function (caution) {
+			var caution = require('caution');
+			caution.addLoad(function (name, versions, callback) {
+				if (name === 'A') return callback(null, "define([], {a: 'A'});");
+				callback(true);
+			});
 		
-		require(['A'], function (A) {
-			assert.equal(A.a, 'A');
-			done();
+			require(['A'], function (A) {
+				assert.equal(A.a, 'A');
+				done();
+			});
+		});
+	});
+	
+	it('defines special "module" module', function (done) {
+		require(['caution-commonjs'], function (caution) {
+			caution.addLoad(function (name, versions, callback) {
+				if (name === 'A') return callback(null, "define(['module'], function (module) {\n\tmodule.exports = {a: 'A'};\n});");
+				callback(true);
+			});
+		
+			require(['A'], function (A) {
+				assert.equal(A.a, 'A');
+				done();
+			});
+		});
+	});
+
+	it('defines special "exports" module', function (done) {
+		require(['caution-commonjs'], function (caution) {
+			caution.addLoad(function (name, versions, callback) {
+				if (name === 'A') return callback(null, "define(['exports'], function (exports) {\n\texports.a = 'A';\n});");
+				callback(true);
+			});
+		
+			require(['A'], function (A) {
+				assert.equal(A.a, 'A');
+				done();
+			});
+		});
+	});
+
+	it('defines special "require" module', function (done) {
+		require(['caution-commonjs'], function (caution) {
+			caution.addLoad(function (name, versions, callback) {
+				if (name === 'A1/sub') return callback(null, "define(function (require, exports, module) {\n\texports.foo = 'bar';\n});");
+				if (name === 'A1') return callback(null, "define(['require', 'A1/sub'], function (require) {\n\treturn {sub: require('./sub')};\n});");
+				callback(true);
+			});
+		
+			require(['A1'], function (A) {
+				assert.equal(A.sub.foo, 'bar');
+				done();
+			});
 		});
 	});
 });
