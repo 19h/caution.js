@@ -74,4 +74,35 @@ describe('CommonJS support', function () {
 			});
 		});
 	});
+	
+	it('handles require() dependencies', function (done) {
+		require(['caution-commonjs'], function (caution) {
+			var caution = require('caution');
+			caution.addLoad(function (name, versions, callback) {
+				if (name === 'A') return callback(null, "module.exports = {B: require('B')};");
+				if (name === 'B') return callback(null, "module.exports = {foo: 'bar'};");
+				callback(true);
+			});
+		
+			require(['A'], function (A) {
+				assert.equal(A.B.foo, 'bar');
+				done();
+			});
+		});
+	});
+	
+	it('ignores require() inside define()', function (done) {
+		require(['caution-commonjs'], function (caution) {
+			var caution = require('caution');
+			caution.addLoad(function (name, versions, callback) {
+				if (name === 'A') return callback(null, "define('A', ['B'], function () {return {B: require('B')};});define('B', [], {foo:'bar'});");
+				callback(true);
+			});
+		
+			require(['A'], function (A) {
+				assert.equal(A.B.foo, 'bar');
+				done();
+			});
+		});
+	});
 });
