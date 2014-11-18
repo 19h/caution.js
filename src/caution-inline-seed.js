@@ -1,23 +1,54 @@
 // This is the inline seed of the caution module - _m, fail() and urls() are kept on for continuity
 define._c = {
-	_m: {}, // Existing modules, (name -> [url, hash]) - pending modules should have truthy values
+	_m: {},
 	fail: function (name, versions, error) {
 		var message ='Missing safe module: ' + name + '\n' + versions.join('\n');
 		alert(message);
 		throw new Error(message);
-	},
-	urls: function (moduleName, versions) {
-		return [];
-	},
-	load: function (name, versions, hashes) {
-		var cautionSeed = this;
-		var urls = cautionSeed.urls(name, versions);
+	}
+};
+
+var init = function (config) {
+	init = 0;
 	
+	var cautionSeed = define._c;
+	define.urls = function (moduleName, versions) {
+		function specToUrls(spec) {
+			var result = [];
+			var vRegExp = /\{v\}/g;
+			if (spec + "" !== spec) {
+				if (spec[moduleName]) {
+					result = specToUrls(spec[moduleName]);
+				}
+			} else {
+				spec = spec.replace(/\{m?\}/g, moduleName);
+				if (vRegExp.test(spec)) {
+					for (var i = 0; versions && versions[i]; i++) {
+						result.push(spec.replace(vRegExp, versions[i]));
+					}
+				} else {
+					result[0] = spec;
+				}
+			}
+			return result;
+		}
+		return [].concat.apply([], config.u.map(specToUrls));
+	};
+			
+	for (var key in config.m) {
+		var entry = config.m[key];
+		load(key, entry.v, entry.s);
+	}
+	
+	function load(name, versions, hashes) {
+		versions = versions || [];
 		hashes = hashes || versions;
-	
+
+		var urls = cautionSeed.urls(name, versions);
+
 		if (!cautionSeed._m[name]) {
 			cautionSeed._m[name] = [];
-		
+	
 			function next(error) {
 				if (urls.length) {
 					// AJAX request with next URL
@@ -33,7 +64,7 @@ define._c = {
 							var hash = statusNotOK || sha256(encodeURI(content).replace(/%(..)/g, function (part, hexPair) {
 								return String.fromCharCode('0x' + hexPair - 0);
 							}));
-							
+						
 							var end = '/.test("' + hash + '")';
 
 							if (!statusNotOK
@@ -47,7 +78,7 @@ define._c = {
 							}
 						}
 					};
-				
+			
 					try {
 						request.send();
 					} catch (e) {

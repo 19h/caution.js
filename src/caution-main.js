@@ -14,6 +14,7 @@
 	}
 	// Extract the seed - we keep existing definitions for _m, urls(), and fail(), but everything else is defined here
 	var caution = define._c || {};
+	caution._m = caution._m || {};
 	
 	var sha256 = result.sha256;
 	function sha256unicode(text) {
@@ -285,6 +286,7 @@
 	};
 	
 	/* caution.urls() is defined in the inline seed */
+	caution.urls = caution.urls || function () {return [];};
 
 	caution.addUrls = function (funcs) {
 		funcs = [].concat(funcs);
