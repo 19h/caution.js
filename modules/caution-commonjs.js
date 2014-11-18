@@ -5,11 +5,15 @@ define(['caution'], function (caution) {
 		module.id = moduleName;
 		module.exports = {};
 		module.require = function (path, func) {
-			if (path.charAt(0) === '.') {
-				path = moduleName + '/' + path + '/';
-				path = path.replace(/\/\.\//g, '/').replace(/[^\/]+\/\.\.\//g, '').replace(/\/*$/, '');
+			return require(resolve(path), func);
+		};
+		
+		function resolve(name) {
+			if (name.charAt(0) === '.') {
+				name = moduleName + '/' + name + '/';
+				name = name.replace(/\/\.\//g, '/').replace(/[^\/]+\/\.\.\//g, '').replace(/\/*$/, '');
 			}
-			return require(path, func);
+			return name;
 		};
 		
 		function newDefine(name, deps, factory) {
@@ -56,7 +60,7 @@ define(['caution'], function (caution) {
 				};
 			}
 			
-			name = name || moduleName;
+			name = name ? resolve(name) : moduleName;
 
 			return define(name ? name : filteredDeps, name ? filteredDeps : factory, name ? factory : undefined);
 		}
