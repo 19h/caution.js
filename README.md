@@ -1,3 +1,5 @@
+You can see the presentation at: [geraintluff.bitbucket.org/caution-presentation/](geraintluff.bitbucket.org/caution-presentation/)
+
 I'm currently at the **31st Chaos Communication Congress** - get in touch if you're here! (luffgd@gmail.com / DECT 4597).
 
 # caution.js - a module loader for tamper-proof web apps
