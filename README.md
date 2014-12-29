@@ -1,3 +1,5 @@
+I'm currently at the **31st Chaos Communication Congress** - get in touch if you're here! (luffgd@gmail.com / DECT 4597).
+
 # caution.js - a module loader for tamper-proof web apps
 
 This project provides a module loader capable of performing cryptographic verification.  It can also generate "seed" code to bootstrap this verification from a data URL.
