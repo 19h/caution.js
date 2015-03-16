@@ -1,6 +1,4 @@
-I'm currently at the **31st Chaos Communication Congress** - get in touch if you're here! (luffgd@gmail.com / DECT 4597).
-
-You can see my Lightning Talk presentation at: [geraintluff.bitbucket.org/caution-presentation/](geraintluff.bitbucket.org/caution-presentation/)
+You can see my Lightning Talk presentation from 31C3 at: [geraintluff.bitbucket.org/caution-presentation/](geraintluff.bitbucket.org/caution-presentation/)
 
 # caution.js - a module loader for tamper-proof web apps
 
